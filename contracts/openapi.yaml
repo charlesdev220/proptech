@@ -1,0 +1,205 @@
+openapi: 3.0.3
+info:
+  title: PropTech API
+  description: API REST para la plataforma PropTech (Alquiler & Venta con Red Social de Reputación)
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Entorno de Desarrollo Local
+paths:
+  /auth/login:
+    post:
+      summary: Autenticar usuario y obtener JWT
+      tags:
+        - Autenticación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Bad Request (RFC 7807)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /properties:
+    get:
+      summary: Obtener listado de inmuebles (Búsqueda)
+      tags:
+        - Inmuebles
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Listado paginado de inmuebles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagePropertyDTO'
+    post:
+      summary: Crear un nuevo inmueble
+      tags:
+        - Inmuebles
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyCreateDTO'
+      responses:
+        '201':
+          description: Inmueble creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropertyDTO'
+        '400':
+          description: Error de validación
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: No autorizado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        expiresIn:
+          type: integer
+
+    PropertyDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        type:
+          type: string
+          enum: [RENT, SALE]
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+            address:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    PropertyCreateDTO:
+      type: object
+      required:
+        - title
+        - price
+        - type
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        type:
+          type: string
+          enum: [RENT, SALE]
+
+    PagePropertyDTO:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertyDTO'
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        size:
+          type: integer
+        number:
+          type: integer
+
+    ProblemDetail:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
