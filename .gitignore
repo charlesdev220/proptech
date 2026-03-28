@@ -1,0 +1,42 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.iml
+.settings/
+.classpath
+.project
+
+# Environment
+.env
+.env.local
+
+# Node / Angular (Frontend)
+node_modules/
+dist/
+tmp/
+out-tsc/
+bazel-out/
+.angular/
+
+# Java / Spring Boot (Backend)
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.mvn/
+
+# Terraform / DevOps
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Testing
+coverage/
+logs/
