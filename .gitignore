@@ -1,19 +1,18 @@
 # OS
 .DS_Store
 Thumbs.db
+*.swp
+*.lock
+*.tmp
 
 # IDEs
 .idea/
 .vscode/
-*.swp
 *.iml
 .settings/
 .classpath
 .project
-
-# Environment
-.env
-.env.local
+.nb-gradle/
 
 # Node / Angular (Frontend)
 node_modules/
@@ -28,6 +27,11 @@ bazel-out/
 /.angular-cli.json
 /.ng/
 *.tsbuildinfo
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
 
 # Java / Spring Boot (Backend)
 target/
@@ -37,15 +41,41 @@ target/
 *.ear
 *.log
 .mvn/
+bin/
+build/
+.gradle/
+.factorypath
+HELP.md
 
-# Terraform / DevOps
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.jks
+*.p12
+*.key
+*.pem
+secrets.xml
+
+# Terraform / DevOps / Cloud
 .terraform/
 *.tfstate
 *.tfstate.backup
+.aws/
+.gcloud/
+kapacitor.db
 
-# Testing / Logs
+# Testing
 coverage/
 logs/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+.nyc_output/
+.scannerwork/
+
+# Python (Skills/Scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.pytest_cache/
