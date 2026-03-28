@@ -101,6 +101,44 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /media/upload:
+    post:
+      summary: Subir una imagen de un inmueble
+      tags:
+        - Medios
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: El archivo de imagen (JPEG, PNG).
+      responses:
+        '201':
+          description: Imagen subida exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaDTO'
+        '400':
+          description: Error de validación (archivo no permitido)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: No autorizado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -189,6 +227,19 @@ components:
           type: integer
         number:
           type: integer
+
+    MediaDTO:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          description: URL pública de la imagen en S3.
+        fileName:
+          type: string
+        size:
+          type: integer
+          description: Tamaño en bytes.
 
     ProblemDetail:
       type: object

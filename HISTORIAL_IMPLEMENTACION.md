@@ -2,6 +2,13 @@
 
 > Registro secuencial de tareas completadas según el PropTech_Implementation_Plan.md y WBS. El orden es cronológico inverso (lo más reciente arriba).
 
+### Qué hemos completado hasta ahora (Motor de Publicación Fullstack):
+*Fase actual:* Fase 1: MVP - 1.2 Core de Gestión de Inmuebles
+*Estado actual:* En Proceso
+- ✔️ **Contrato API (Contract-first):** Añadido el endpoint de subida de imágenes (`/api/v1/media/upload`) al Spec OpenAPI.
+- ✔️ **Microservicio de gestión de medios (S3):** Creados el `MediaController` y `PropertyController` en Spring Boot (Implementación preliminar).
+- ✔️ **Formulario reactivo en Angular:** Creado componente Standalone (`PropertyPublishComponent`) con Signals para la publicación íntegra.
+
 ### Qué hemos completado hasta ahora (Finalización de 1.1):
 *Fase actual:* Fase 1: MVP - 1.1 Fundamentos de Infraestructura y Backend
 *Estado actual:* Completado
