@@ -13,6 +13,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "users")
 @Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -49,8 +51,13 @@ public class UserEntity implements UserDetails {
     }
 
     @Override
+    public String getPassword() {
+        return this.password;
+    }
+
+    @Override
     public String getUsername() {
-        return email;
+        return this.email;
     }
 
     @Override
@@ -66,6 +73,26 @@ public class UserEntity implements UserDetails {
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
+    }
+
+    public Integer getTrustScore() {
+        return this.trustScore;
+    }
+
+    public Boolean getIsVerified() {
+        return this.isVerified;
+    }
+
+    public UUID getId() {
+        return this.id;
+    }
+
+    public String getEmail() {
+        return this.email;
+    }
+
+    public String getName() {
+        return this.name;
     }
 
     @Override

@@ -7,6 +7,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { PropertyDTOLocation } from './propertyDTOLocation';
 
 
 export interface PropertyCreateDTO { 
@@ -14,6 +15,7 @@ export interface PropertyCreateDTO {
     description?: string;
     price: number;
     type: PropertyCreateDTO.TypeEnum;
+    location: PropertyDTOLocation;
 }
 export namespace PropertyCreateDTO {
     export const TypeEnum = {

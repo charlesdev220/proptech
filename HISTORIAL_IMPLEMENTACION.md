@@ -2,6 +2,23 @@
 
 > Registro secuencial de tareas completadas según el PropTech_Implementation_Plan.md y WBS. El orden es cronológico inverso (lo más reciente arriba).
 
+### Qué hemos completado hasta ahora (Gestión de Perfiles y Trust Scoring):
+*Fase actual:* Fase 1: MVP - 1.3 Perfil de Usuario y Reputación
+*Estado actual:* En Proceso (Backend 100% Funcional y API Sincronizada)
+*Próximos pasos:* Fase 1.3 - Implementar Dashboard de Perfil en Angular con Visualización de Scoring.
+- ✔️ **Backend (Scoring Logic)**: Implementado `ScoringService` con lógica por factores (Emails, Verificaciones) y niveles (Bronze/Gold/Platinum).
+- ✔️ **Profile API (Contract-First)**: Expuestos endpoints `/profile` y `/profile/trust-score` en `ProfileController`. 
+- ✔️ **Arquitectura de Sincronización**: Configurado `openapi-generator-maven-plugin` en el backend para DTOs autogenerados, eliminando mocks manuales.
+- ✔️ **Frontend (API Generation)**: Actualizados los servicios TypeScript de cliente mediante `npm run generate:api` sincronizados con el nuevo contrato.
+
+### Qué hemos completado hasta ahora (Motor de Búsqueda Geoespacial):
+*Fase actual:* Fase 1: MVP - 1.2 Core de Gestión de Inmuebles
+*Estado actual:* Completado
+*Próximos pasos:* Fase 1.3 - Perfil de Usuario, Scoring Inicial v1 y Módulo de Carga de Documentos Segura.
+- ✔️ **Backend (PostGIS Query)**: Implementada búsqueda espacial en `PropertyRepository` usando `ST_DWithin` y MapStruct para tipos JTS `Point`.
+- ✔️ **Frontend (Mapbox Integration)**: Creado `PropertyListComponent` (Standalone) con integración de Mapbox GL JS, marcadores dinámicos y filtros reactivos (Signals).
+- ✔️ **Contrato API**: Ampliado `openapi.yaml` con parámetros de lat/lng/radio y nuevas interfaces generadas.
+
 ### Qué hemos completado hasta ahora (Migración de Almacenamiento Media NoSQL/LOB):
 *Fase actual:* Fase 1: MVP - 1.2 Core de Gestión de Inmuebles
 *Estado actual:* Completado

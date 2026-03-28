@@ -1,0 +1,60 @@
+package com.proptech.backend.infrastructure.mapper;
+
+import com.proptech.backend.api.dto.PropertyCreateDTO;
+import com.proptech.backend.api.dto.PropertyDTO;
+import com.proptech.backend.api.dto.PropertyDTOLocation;
+import com.proptech.backend.infrastructure.persistence.entity.PropertyEntity;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+
+@Mapper(componentModel = "spring")
+public interface PropertyMapper {
+
+    GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(), 4326);
+
+    @Mapping(target = "location", source = "entity", qualifiedByName = "toLocationDto")
+    PropertyDTO toDto(PropertyEntity entity);
+
+    @Mapping(target = "location", source = "dto.location", qualifiedByName = "toPoint")
+    @Mapping(target = "address", source = "dto.location.address")
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    PropertyEntity toEntity(PropertyCreateDTO dto);
+
+    @Named("toLocationDto")
+    default PropertyDTOLocation toLocationDto(PropertyEntity entity) {
+        if (entity.getLocation() == null) return null;
+        PropertyDTOLocation loc = new PropertyDTOLocation();
+        loc.setLatitude(BigDecimal.valueOf(entity.getLocation().getY()));
+        loc.setLongitude(BigDecimal.valueOf(entity.getLocation().getX()));
+        loc.setAddress(entity.getAddress());
+        return loc;
+    }
+
+    @Named("toPoint")
+    default Point toPoint(PropertyDTOLocation locationDto) {
+        if (locationDto == null || locationDto.getLatitude() == null || locationDto.getLongitude() == null) {
+            return null;
+        }
+        return GEOMETRY_FACTORY.createPoint(new Coordinate(
+            locationDto.getLongitude().doubleValue(),
+            locationDto.getLatitude().doubleValue()
+        ));
+    }
+
+    default OffsetDateTime mapDateTime(LocalDateTime value) {
+        if (value == null) return null;
+        return value.atOffset(ZoneOffset.UTC);
+    }
+}

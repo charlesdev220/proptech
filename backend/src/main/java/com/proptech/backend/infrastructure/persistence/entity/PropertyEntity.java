@@ -43,8 +43,48 @@ public class PropertyEntity {
 
     private LocalDateTime createdAt;
 
+    public Point getLocation() {
+        return this.location;
+    }
+
+    public String getAddress() {
+        return this.address;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public BigDecimal getPrice() {
+        return this.price;
+    }
+
+    public String getType() {
+        return this.type;
+    }
+
+    public UUID getId() {
+        return this.id;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return this.createdAt;
+    }
+
     @PrePersist
     public void setCreationDate() {
         this.createdAt = LocalDateTime.now();
+    }
+
+    public void setOwner(UserEntity owner) {
+        this.owner = owner;
+    }
+
+    public void setLocation(Point location) {
+        this.location = location;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 }

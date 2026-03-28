@@ -48,14 +48,17 @@ export class InmueblesService extends BaseService {
      * @param size 
      * @param minPrice 
      * @param maxPrice 
+     * @param lat Latitud del centro de búsqueda
+     * @param lng Longitud del centro de búsqueda
+     * @param radius Radio de búsqueda en metros (ej. 5000 para 5km)
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public propertiesGet(page?: number, size?: number, minPrice?: number, maxPrice?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PagePropertyDTO>;
-    public propertiesGet(page?: number, size?: number, minPrice?: number, maxPrice?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PagePropertyDTO>>;
-    public propertiesGet(page?: number, size?: number, minPrice?: number, maxPrice?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PagePropertyDTO>>;
-    public propertiesGet(page?: number, size?: number, minPrice?: number, maxPrice?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public propertiesGet(page?: number, size?: number, minPrice?: number, maxPrice?: number, lat?: number, lng?: number, radius?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PagePropertyDTO>;
+    public propertiesGet(page?: number, size?: number, minPrice?: number, maxPrice?: number, lat?: number, lng?: number, radius?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PagePropertyDTO>>;
+    public propertiesGet(page?: number, size?: number, minPrice?: number, maxPrice?: number, lat?: number, lng?: number, radius?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PagePropertyDTO>>;
+    public propertiesGet(page?: number, size?: number, minPrice?: number, maxPrice?: number, lat?: number, lng?: number, radius?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
 
@@ -90,6 +93,33 @@ export class InmueblesService extends BaseService {
             localVarQueryParameters,
             'maxPrice',
             <any>maxPrice,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'lat',
+            <any>lat,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'lng',
+            <any>lng,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'radius',
+            <any>radius,
             QueryParamStyle.Form,
             true,
         );

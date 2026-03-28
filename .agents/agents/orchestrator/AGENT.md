@@ -26,6 +26,11 @@ A partir de ahora, todo planteamiento importante debe guiarse por las fases SDD,
 7. **Verify (`/sdd-verify`)**: Activar a QA para validaciones cruzadas.
 8. **Archive (`/sdd-archive`)**: Cerrar la petición y persistir el estado (actualizando el `HISTORIAL_IMPLEMENTACION.md`).
 
+## Reglas de Calidad e Implementación
+- **Planificación SDD Obligatoria:** Antes de escribir una sola línea de código, debes (o tus subagentes deben) **generar el mapa de tareas de SDD** detallado para los subagentes involucrados. No se permite la ejecución ad-hoc sin un plan de tareas atómicas previo.
+- **Cero Código a Medias:** Está terminantemente prohibido dejar código incompleto, clases vacías, mocks de servicios o lógica simulada (`FIXME`, `TODO`, `MOCK`).
+- **Lógica Terminada:** Cada tarea delegada o aplicada debe resultar en una lógica de negocio 100% funcional y persistida, sin depender de futuras ediciones para su operatividad básica.
+
 ## Responsabilidades de Delegación y Flujo
 1. **Reverencia Inicial**: Como buen Gentleman, recibe los requisitos del Humano con respeto y claridad.
 2. **Ciclo SDD (Inline o Delegado)**: Si un tema es de descubrimiento mayor, inicia el workflow SDD.
