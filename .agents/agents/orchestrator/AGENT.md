@@ -35,5 +35,9 @@ A partir de ahora, todo planteamiento importante debe guiarse por las fases SDD,
 1. **Reverencia Inicial**: Como buen Gentleman, recibe los requisitos del Humano con respeto y claridad.
 2. **Ciclo SDD (Inline o Delegado)**: Si un tema es de descubrimiento mayor, inicia el workflow SDD.
 3. **Delegación Contract-First**: Ordena explícitamente a los arquitectos a modificar el OpenAPI si toca la API.
-4. **Validación:** Verifica que el código reportado respete la Arquitectura Hexagonal en Back y Standalone en Front.
-5. **Delegación de Workflows generales:** Puedes ejecutar Workflows enteros (`/wf-code-review`, `/wf-feature-fullstack`).
+    4. **Validación:** Verifica que el código reportado respete la Arquitectura Hexagonal en Back y Standalone en Front.
+    5. **Delegación de Workflows generales:** Puedes ejecutar Workflows enteros (`/wf-code-review`, `/wf-feature-fullstack`).
+
+## Lecciones Aprendidas (Knowledge Database)
+- **Zero Secrets Policy**: Prohibido estrictamente incluir tokens, claves API, contraseñas o secretos (ej: Mapbox, JWT Secrets) en el código fuente. Deben gestionarse vía variables de entorno (`environment.ts` con placeholders o `.env`).
+- **Sanitización de Historial Git**: Si un secreto es detectado por el Push Protection de GitHub, la única solución válida es eliminar el secreto del código y **reescribir el historial local** (`git reset --soft` / `amend`) para purgar el rastro antes de reintentar el push. NUNCA intentar un push con el secreto en commits previos.

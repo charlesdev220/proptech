@@ -2,6 +2,13 @@
 
 > Registro secuencial de tareas completadas según el PropTech_Implementation_Plan.md y WBS. El orden es cronológico inverso (lo más reciente arriba).
 
+### Qué hemos completado hasta ahora (Remediación de Seguridad y Sincronización):
+*Fase actual:* Fase 1: MVP - 1.3 Perfil de Usuario y Reputación
+*Estado actual:* Completado (Pushed to GitHub)
+- ✔️ **Sanitización de Seguridad**: Eliminado Mapbox Secret Token del código fuente y movido a variable de entorno/placeholder para cumplir con GitHub Push Protection.
+- ✔️ **Remediación de Historial Git**: Reescrito el historial local (`git reset --soft` y `amend`) para purgar el secreto de los commits antes del push exitoso.
+- ✔️ **Sincronización de Perfil**: Confirmado el flujo de extremo a extremo para las APIs de scoring y perfil de usuario.
+
 ### Qué hemos completado hasta ahora (Gestión de Perfiles y Trust Scoring):
 *Fase actual:* Fase 1: MVP - 1.3 Perfil de Usuario y Reputación
 *Estado actual:* En Proceso (Backend 100% Funcional y API Sincronizada)
