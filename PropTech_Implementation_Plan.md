@@ -7,8 +7,8 @@ Este documento detalla el plan de ejecución técnica y funcional para la plataf
 ## 🏗️ Arquitectura de Referencia (Stack Actualizado)
 - **Frontend:** Angular (Última versión) + Tailwind CSS + Angular CDK.
 - **Backend:** Java + Spring Boot + Hibernate (JPA).
-- **Base de Datos:** PostgreSQL + PostGIS.
-- **Infraestructura:** AWS (EKS, RDS, S3).
+- **Base de Datos:** PostgreSQL + PostGIS (incluyendo Blob Storage Local).
+- **Infraestructura:** AWS (EKS, RDS) + Integraciones S3 solo para Documentos/KYC.
 
 ---
 
@@ -42,8 +42,8 @@ graph TD
 
 ### 1.2 Core de Gestión de Inmuebles (Semanas 5-12)
 - **Tarea: Motor de Publicación**
-    - Subtarea: Formulario reactivo en Angular para subida de anuncios.
-    - Subtarea: Microservicio de gestión de medios (S3 + Comprasión de imágenes).
+    - Subtarea: Formulario reactivo en Angular para subida de anuncios con compresión nativa Canvas.
+    - Subtarea: Microservicio de gestión de medios (PostgreSQL LOB Storage).
 - **Tarea: Motor de Búsqueda Geoespacial**
     - Subtarea: Implementación de queries espaciales en el Backend.
     - Subtarea: Integración de Mapbox GL JS en el Frontend Angular.

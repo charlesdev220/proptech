@@ -103,7 +103,7 @@ paths:
 
   /media/upload:
     post:
-      summary: Subir una imagen de un inmueble
+      summary: Subir un archivo multimedia (imagen o vídeo)
       tags:
         - Medios
       security:
@@ -118,22 +118,43 @@ paths:
                 file:
                   type: string
                   format: binary
-                  description: El archivo de imagen (JPEG, PNG).
+                  description: El archivo binario
       responses:
         '201':
-          description: Imagen subida exitosamente
+          description: Archivo subido exitosamente
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MediaDTO'
         '400':
-          description: Error de validación (archivo no permitido)
+          description: Archivo supera límites o formato no permitido
           content:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
-        '401':
-          description: No autorizado
+
+  /media/{id}:
+    get:
+      summary: Descargar o ver un archivo multimedia
+      tags:
+        - Medios
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Archivo binario (JPEG, PNG, MP4, etc.)
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Archivo no encontrado
           content:
             application/problem+json:
               schema:

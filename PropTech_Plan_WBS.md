@@ -146,7 +146,7 @@ La plataforma se estructura en 8 módulos principales que interoperan a través 
 
 -   Crear, editar, publicar y pausar anuncios
 
--   Subida masiva de fotos/vídeos con compresor automático
+-   Subida masiva de fotos/vídeos con compresión en cliente (HTML5 Canvas) y almacenamiento BBDD
 
 -   Asistente IA para generar título, descripción y keywords SEO del anuncio
 
@@ -536,7 +536,7 @@ La WBS se organiza en 9 áreas de trabajo y 4 fases temporales. Cada área se de
 
 -   Publicación de anuncios (formulario multi-paso)
 
--   Subida de fotos con compresión automática
+-   Subida de fotos con compresión nativa en navegador y storage en Base de Datos
 
 -   Página de resultados con filtros básicos
 
@@ -697,7 +697,7 @@ La WBS se organiza en 9 áreas de trabajo y 4 fases temporales. Cada área se de
   ------------------- ---------------------------- ------------------------------------------------------------
   Compute             EKS (Kubernetes)             Orquestación de microservicios con auto-scaling
 
-  Almacenamiento      S3 + CloudFront CDN          Fotos, vídeos y documentos. Entrega global de assets.
+  Almacenamiento      PostgreSQL LOB / S3          Imágenes y vídeos local (DB) / KYC y Docs en S3
 
   Base de Datos       RDS PostgreSQL (Multi-AZ)    Alta disponibilidad con failover automático
 

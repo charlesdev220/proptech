@@ -2,6 +2,12 @@
 
 > Registro secuencial de tareas completadas según el PropTech_Implementation_Plan.md y WBS. El orden es cronológico inverso (lo más reciente arriba).
 
+### Qué hemos completado hasta ahora (Migración de Almacenamiento Media NoSQL/LOB):
+*Fase actual:* Fase 1: MVP - 1.2 Core de Gestión de Inmuebles
+*Estado actual:* Completado
+- ✔️ **Almacenamiento Local (PostgreSQL)**: Integradas las capas Entity, Service y Controller REST para `multipart/form-data` y servir blobs serializados vía stream.
+- ✔️ **Estrategia Compresión Frontend**: Aplicada lógica Nativa Canvas en Angular 17. Límite de resolución HD (1280px a 70% calidad). Video protegido a 15MB.
+
 ### Qué hemos completado hasta ahora (Motor de Publicación Fullstack):
 *Fase actual:* Fase 1: MVP - 1.2 Core de Gestión de Inmuebles
 *Estado actual:* En Proceso
