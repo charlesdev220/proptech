@@ -1,3 +1,6 @@
+---
+trigger: always_on
+---
 # PropTech Project Rules (Merged Multi-Layer Architecture)
 
 ## 1. BACKEND RULES
