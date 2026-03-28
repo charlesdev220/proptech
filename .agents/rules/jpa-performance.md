@@ -1,4 +1,7 @@
 ---
+trigger: always_on
+---
+---
 description: Directrices para consultas e interacciones óptimas con PostgreSQL + y evitar N+1 queries.
 ---
 

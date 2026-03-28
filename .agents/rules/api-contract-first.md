@@ -1,4 +1,7 @@
 ---
+trigger: always_on
+---
+---
 description: Reglas para la obligatoriedad del diseño de API Contract-First
 ---
 

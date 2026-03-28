@@ -1,4 +1,7 @@
 ---
+trigger: always_on
+---
+---
 description: Reglas de arquitectura de carpetas y estructuración de componentes en Angular 17+
 ---
 

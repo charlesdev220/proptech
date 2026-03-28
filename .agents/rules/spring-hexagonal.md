@@ -1,4 +1,8 @@
 ---
+trigger: always_on
+---
+
+---
 description: Aislamiento de capas en Java/Spring Boot basado en arquitectura Hexagonal.
 ---
 

@@ -1,4 +1,8 @@
 ---
+trigger: always_on
+---
+
+---
 description: Políticas sobre reactividad y gestión de estado local y global en Angular.
 ---
 

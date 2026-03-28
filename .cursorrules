@@ -1,0 +1,77 @@
+# PropTech Project Rules (Merged Multi-Layer Architecture)
+
+## 1. BACKEND RULES
+
+### Arquitectura Backend Spring Boot (Hexagonal)
+1. **Patrón de Capas Estricto:**
+   - `Layer API (Controller)`: Exponer REST, procesa Request/Response HTTP en formato DTO. Conoce a `App Layer`.
+   - `Layer Domain (Service)`: Lógica pura de negocio. Interfaz central. Conoce de interfaces, pero NO implementaciones de base de datos.
+   - `Layer Infra (Repository)`: Adaptadores de base de datos (`JpaRepository`, implementaciones).
+2. **Política de Transferencia de Objetos (MDTOs):**
+   - Una entidad anotada con `@Entity` o `@Table` (Hibernate) **nunca** debe alcanzar el controlador REST o ser la firma de retorno de una API.
+   - Todo debe ser transferido usando `Records` (DTO) en Java 21+. 
+   - Uso obligatorio de **MapStruct** para convertir eficientemente entre Entity -> DTO y viceversa en la capa de Servicio.
+3. **Inyección de Dependencias:** Usar Constructor Injection (Preferiblemente con Lombok `@RequiredArgsConstructor`). Prohibido `@Autowired` en variables de campo (Field Injection).
+
+### Reglas de Rendimiento de JPA/Hibernate
+1. **Filtrado del N+1 Problem:**
+   - Nunca confíes en el `FetchType.EAGER` masivo. Estandarizar relaciones en `FetchType.LAZY`.
+   - Al buscar colecciones anidadas desde un servicio (ej: Inmueble y Fotos), debe usarse obligatoriamente la anotación de `@EntityGraph` en la firma del repositorio (o un JOIN FETCH) para resolverlo en una única Query.
+2. **Paginación Absoluta:**
+   - Ningún endpoint que devuelva colecciones de objetos grandes (`List<User>`, `List<Property>`) está permitido en producción sin paginar.
+   - Obligación de usar `Pageable` inyectado en Controller y pasar a `Page<?>` de respuesta.
+3. **Transaccionalidad:**
+   - Métodos de solo lectura en Service deben estar anotados rigurosamente con `@Transactional(readOnly = true)` para evitar Flush de Hibernate innecesario y usar réplicas de sólo lectura.
+
+## 2. FRONTEND RULES
+
+### Arquitectura Frontend Angular
+1. **Standalone Components Obligatorios:** Todo componente, directiva o pipe nuevo debe usar `standalone: true`. Nunca usar ni crear `NgModule`.
+2. **Estructura por Características (Feature-Driven):**
+   - `/core`: Servicios *Singleton* de uso general (Interceptors, AuthService, Logging). Solo se inyectan en `app.config.ts`.
+   - `/shared`: Componentes puramente visuales (Botones, Inputs, Modales), Pipes y Directivas que se reutilizan en múltiples features.
+   - `/features`: Agrupación por lógica de negocio (ej: `/property-list`, `/user-dashboard`). Cada feature debe estar fuertemente encapsulada y no depender de otras si es posible.
+3. **Smart vs Dumb Components:** 
+   - Feature components son *Smart* (inyectan servicios y manejan estado global). 
+   - Shared components son *Dumb* (solo reciben de `@Input()` y envían por `@Output()`).
+4. **Control Flow:** Uso exclusivo de las nuevas directivas `@if`, `@for` integradas. Nunca usar `*ngIf` ni `*ngFor`.
+
+### Gestión de Estado Angular (Signals)
+1. **Estado Local:** 
+   - Está prohibido el uso de decoradores clásicos para inicialización mutable si se puede usar reactividad.
+   - Uso obligatorio de `signal()`, `computed()` y `effect()` para datos reactivos internos de los componentes.
+2. **Inputs y Outputs:** 
+   - Utilizar las nuevas APIs estandarizadas: `input()`, `input.required()` y el uso de Signals para leerlos.
+3. **Cuándo usar RxJS:**
+   - La librería RxJS debe limitarse al consumo de APIs REST (`HttpClient`) y el uso de `BehaviorSubject`/`Observable` se reserva exclusivamente para flujos asíncronos complejos que necesiten manipulación de tiempo (`debounceTime`, `switchMap`, invocaciones basadas en EventListeners continuos).
+   - Siempre intentar convertir el resultado de una llamada asíncrona rápidamente a Signal para su pintado en vista (`toSignal()`).
+4. **Estado Global (NgRx):** 
+   - Sólo usar store (Redux-pattern) para datos altamente compartidos entre diferentes *features* que no tengan una relación directa padre-hijo (ej. Token y Rol de usuario autenticado, Filtros globales de búsqueda persistentes).
+
+## 3. COMMON RULES
+
+### Desarrollo Guiado por Contratos (Contract-First)
+1. **Diseño Previo Obligatorio:**
+   - Ninguna línea de código de un Controlador de Spring o un Servicio de Angular se escribirá sin antes definir o modificar la especificación `openapi.yaml` (o `.json`).
+   - El archivo Swagger/OpenAPI es la fuente única de la verdad.
+2. **Generación Automática:**
+   - Los modelos de Typescript (API Client) deben generarse siempre a través de OpenAPI Generator basándose en el contrato del backend. Prohibido escribir interfaces a mano que representen Respuestas HTTP.
+3. **Manejo Estructurado de Errores (@ControllerAdvice):**
+   - El contrato debe incluir especificaciones de errores `400 Bad Request`, `401 Unauthorized`, `404 Not Found` bajo un formato estándar común en toda la aplicación (ej. `RFC 7807`), para que el frontend pueda manejarlo genéricamente a través de Angular Interceptors.
+
+### Seguridad y Data Privacy (GDPR)
+1. **Gestión de PII (Personally Identifiable Information):**
+   - Nunca envíes datos personales (DNI, Nombres completos, Teléfonos, Correos, Direcciones exactas) a APIs de IA externas (Ej. Claude o ChatGPT) en los prompts o análisis. Aplica regex para enmascarar o generar *hashes*.
+   - Los archivos subidos (Nóminas, Contratos) deben ir directamente a buckets S3 cifrados (AWS KMS) sin procesarse como Base64 en el cuerpo principal del backend a menos que sea estrictamente necesario. Usar *pre-signed URLs*.
+2. **Autenticación y Autorización JWT:**
+   - Todos los endpoints (`/api/v1/**`) están cerrados (Autenticados) por defecto. Se debe permitir acceso explícitamente vía Spring Security (Ej. endpoints públicos de listado).
+   - El decorador/anotación `@PreAuthorize` o `@Secured` es obligatorio en métodos que modifiquen el estado (Crear, Actualizar, Borrar).
+3. **Seguridad Web Frontend:**
+   - Evitar `innerHTML` y si se usa, pasarlo forzosamente por el `DomSanitizer` de Angular para evitar XSS.
+   - Manejo de Tokens JWT preferiblemente in-memory o HttpOnly cookies, no `localStorage` directo si se puede evitar.
+
+## 4. WORKFLOWS DISPONIBLES
+El sistema cuenta con flujos de trabajo en `.agents/workflows/` que el Agente puede ejecutar a petición o automáticamente cuando aplique:
+- `/wf-code-review`: Metodología para auditoría y revisión de código estática y de SQA.
+- `/wf-database-migration`: Workflow estricto para modificar base de datos a través de migraciones de JPA y Liquibase.
+- `/wf-feature-fullstack`: Flujo de extremo a extremo para la implementación de una nueva funcionalidad técnica.

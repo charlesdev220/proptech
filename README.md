@@ -66,7 +66,7 @@ El repositorio se divide en dos grandes monolitos orquestados en un formato mono
  ┣ 📂 backend          # API Completa en Java / Spring Boot.
  ┣ 📂 frontend         # Aplicación Web en Angular 17+ (Core, Shared, Features).
  ┣ 📂 infra            # Scripts de despliegue IaC (Terraform, Docker Compose).
- ┣ 📂 .antigravity     # Ecosistema de Agentes IAC y reglas de desarrollo automáticas (LLMs).
+ ┣ 📂 .agents         # Ecosistema de Agentes IAC y reglas de desarrollo automáticas (LLMs).
  ┣ 📜 README.md
  ┗ 📜 docker-compose.yml # Entorno de levantamiento local (DB, Redis, etc.)
 ```
@@ -107,9 +107,9 @@ El repositorio se divide en dos grandes monolitos orquestados en un formato mono
 
 ---
 
-## 🤖 Ecosistema de Automatización IA (`.antigravity`)
+## 🤖 Ecosistema de Automatización IA (`.agents`)
 
-Este proyecto es desarrollado de manera autónoma y controlada a través de un set de **Agentes de Inteligencia Artificial locales (.antigravity/)**. 
+Este proyecto es desarrollado de manera autónoma y controlada a través de un set de **Agentes de Inteligencia Artificial locales (.agents/)**. 
 Dicho ecosistema incluye perfiles de Tech Leads, Arquitectos Angular, Especialistas Java, Testers QA y Expertos Devops. Se encargan de validar PRs (Pull Requests), aplicar migraciones automatizadas a las bases de datos (Liquibase) y autogenerar todo el esqueleto REST y tests de código.
 
 ---

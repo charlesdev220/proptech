@@ -1,4 +1,8 @@
 ---
+trigger: always_on
+---
+
+---
 description: Normativas estrictas sobre manejo de PII y seguridad web
 ---
 
