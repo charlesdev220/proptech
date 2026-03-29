@@ -1,39 +1,66 @@
 package com.proptech.backend.api.controller;
 
+import com.proptech.backend.api.PropertiesApi;
+import com.proptech.backend.api.dto.MediaDTO;
+import com.proptech.backend.api.dto.PagePropertyDTO;
 import com.proptech.backend.api.dto.PropertyCreateDTO;
 import com.proptech.backend.api.dto.PropertyDTO;
+import com.proptech.backend.api.dto.PropertyDetailDTO;
 import com.proptech.backend.domain.service.PropertyService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/properties")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
-public class PropertyController {
+public class PropertyController implements PropertiesApi {
 
     private final PropertyService propertyService;
 
-    @GetMapping
-    public ResponseEntity<Page<PropertyDTO>> searchProperties(
-            @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice,
-            @RequestParam(required = false) Double lat,
-            @RequestParam(required = false) Double lng,
-            @RequestParam(required = false) Double radius,
-            @PageableDefault(size = 20) Pageable pageable) {
+    @Override
+    public ResponseEntity<PagePropertyDTO> propertiesGet(
+            Integer page, Integer size, BigDecimal minPrice, BigDecimal maxPrice,
+            Float lat, Float lng, Float radius) {
         
-        return ResponseEntity.ok(propertyService.searchProperties(minPrice, maxPrice, lat, lng, radius, pageable));
+        var results = propertyService.searchProperties(
+                minPrice, maxPrice, 
+                lat != null ? lat.doubleValue() : null, 
+                lng != null ? lng.doubleValue() : null, 
+                radius != null ? radius.doubleValue() : null, 
+                PageRequest.of(page, size)
+        );
+
+        PagePropertyDTO response = new PagePropertyDTO();
+        response.setContent(results.getContent());
+        response.setTotalElements((int) results.getTotalElements());
+        response.setTotalPages(results.getTotalPages());
+        response.setSize(results.getSize());
+        response.setNumber(results.getNumber());
+
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping
-    public ResponseEntity<PropertyDTO> createProperty(@Valid @RequestBody PropertyCreateDTO propertyDto) {
-        return ResponseEntity.status(201).body(propertyService.createProperty(propertyDto));
+    @Override
+    public ResponseEntity<PropertyDetailDTO> propertiesIdGet(UUID id) {
+        return ResponseEntity.ok(propertyService.getPropertyById(id));
+    }
+
+    @Override
+    public ResponseEntity<List<MediaDTO>> propertiesIdMediaGet(UUID id) {
+        return ResponseEntity.ok(propertyService.getMediaForProperty(id));
+    }
+
+    @Override
+    public ResponseEntity<PropertyDTO> propertiesPost(PropertyCreateDTO propertyCreateDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(propertyService.createProperty(propertyCreateDTO));
     }
 }

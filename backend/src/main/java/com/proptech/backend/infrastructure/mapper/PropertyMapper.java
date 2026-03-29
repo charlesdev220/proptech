@@ -25,11 +25,29 @@ public interface PropertyMapper {
     @Mapping(target = "location", source = "entity", qualifiedByName = "toLocationDto")
     PropertyDTO toDto(PropertyEntity entity);
 
+    @Mapping(target = "location", source = "entity", qualifiedByName = "toLocationDto")
+    @Mapping(target = "fullAddress", source = "address")
+    @Mapping(target = "mediaPreviews", source = "mediaFiles")
+    @Mapping(target = "features.rooms", source = "rooms")
+    @Mapping(target = "features.bathrooms", source = "bathrooms")
+    @Mapping(target = "features.surface", source = "surface")
+    @Mapping(target = "features.hasElevator", source = "hasElevator")
+    @Mapping(target = "features.hasParking", source = "hasParking")
+    @Mapping(target = "features.energyCertificate", source = "energyCertificate")
+    com.proptech.backend.api.dto.PropertyDetailDTO toDetailDto(PropertyEntity entity);
+
     @Mapping(target = "location", source = "dto.location", qualifiedByName = "toPoint")
     @Mapping(target = "address", source = "dto.location.address")
+    @Mapping(target = "rooms", source = "dto.features.rooms")
+    @Mapping(target = "bathrooms", source = "dto.features.bathrooms")
+    @Mapping(target = "surface", source = "dto.features.surface")
+    @Mapping(target = "hasElevator", source = "dto.features.hasElevator")
+    @Mapping(target = "hasParking", source = "dto.features.hasParking")
+    @Mapping(target = "energyCertificate", source = "dto.features.energyCertificate")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "owner", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "mediaFiles", ignore = true)
     PropertyEntity toEntity(PropertyCreateDTO dto);
 
     @Named("toLocationDto")

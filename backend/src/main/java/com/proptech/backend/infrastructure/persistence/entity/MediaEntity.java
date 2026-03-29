@@ -29,6 +29,10 @@ public class MediaEntity {
     @Column(nullable = false)
     private byte[] data;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "property_id")
+    private PropertyEntity property;
+
     private Long size;
 
     public UUID getId() { return id; }

@@ -119,6 +119,54 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /properties/{id}:
+    get:
+      summary: Obtener el detalle completo de un inmueble
+      tags:
+        - Inmuebles
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalle del inmueble devuelto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropertyDetailDTO'
+        '404':
+          description: Inmueble no encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /properties/{id}/media:
+    get:
+      summary: Obtener galería multimedia de un inmueble
+      tags:
+        - Inmuebles
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Listado de medios del inmueble
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MediaDTO'
+
   /media/upload:
     post:
       summary: Subir un archivo multimedia (imagen o vídeo)
@@ -294,6 +342,37 @@ components:
           type: string
           format: date-time
 
+    PropertyDetailDTO:
+      allOf:
+        - $ref: '#/components/schemas/PropertyDTO'
+        - type: object
+          properties:
+            owner:
+              $ref: '#/components/schemas/UserProfileDTO'
+            fullAddress:
+              type: string
+            features:
+              type: object
+              properties:
+                rooms:
+                  type: integer
+                bathrooms:
+                  type: integer
+                surface:
+                  type: number
+                  description: Superficie en m2.
+                hasElevator:
+                  type: boolean
+                hasParking:
+                  type: boolean
+                energyCertificate:
+                  type: string
+                  enum: [A, B, C, D, E, F, G]
+            mediaPreviews:
+              type: array
+              items:
+                $ref: '#/components/schemas/MediaDTO'
+
     PropertyCreateDTO:
       type: object
       required:
@@ -320,6 +399,27 @@ components:
               type: number
             address:
               type: string
+        mediaIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        features:
+          type: object
+          properties:
+            rooms:
+              type: integer
+            bathrooms:
+              type: integer
+            surface:
+              type: number
+            hasElevator:
+              type: boolean
+            hasParking:
+              type: boolean
+            energyCertificate:
+              type: string
+              enum: [A, B, C, D, E, F, G]
 
     PagePropertyDTO:
       type: object
@@ -348,6 +448,7 @@ components:
           type: string
         size:
           type: integer
+          format: int64
           description: Tamaño en bytes.
 
     ProblemDetail:

@@ -41,6 +41,19 @@ public class PropertyEntity {
     @JoinColumn(name = "owner_id", nullable = false)
     private UserEntity owner;
 
+    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private java.util.List<MediaEntity> mediaFiles;
+
+    // Additional Features
+    private Integer rooms;
+    private Integer bathrooms;
+    private Double surface;
+    private Boolean hasElevator;
+    private Boolean hasParking;
+    
+    @Column(length = 2)
+    private String energyCertificate; // A-G
+
     private LocalDateTime createdAt;
 
     public Point getLocation() {

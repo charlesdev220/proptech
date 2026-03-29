@@ -2,6 +2,15 @@
 
 > Registro secuencial de tareas completadas según el PropTech_Implementation_Plan.md y WBS. El orden es cronológico inverso (lo más reciente arriba).
 
+### Qué hemos completado hasta ahora (Ficha de Detalle de Inmueble):
+*Fase actual:* Fase 1: MVP - 1.2 Core de Gestión de Inmuebles
+*Estado actual:* Completado (Full-Stack)
+- ✔️ **Contract-First (OpenAPI)**: Ampliado el contrato con `GET /properties/{id}` y `GET /properties/{id}/media`, definiendo `PropertyDetailDTO` con características técnicas (habitaciones, baños, superficie).
+- ✔️ **Backend (Data & Logic)**: Actualizada `PropertyEntity` con campos de características y galería multimedia. Implementada la lógica en `PropertyService` y `PropertyController` (Lombok & Hexagonal).
+- ✔️ **Frontend (UI Premium)**: Creado `PropertyDetailComponent` (Signals + Standalone) con diseño inmersivo, galería de imágenes, desglose técnico y visualización del Trust Score del propietario.
+- ✔️ **Navegación**: Enlazada la lista de búsqueda con la vista de detalle mediante `RouterLink` y parámetros de ruta.
+
+
 ### Qué hemos completado hasta ahora (Módulo de Carga Segura KYC):
 *Fase actual:* Fase 1: MVP - 1.3 Perfil de Usuario y Reputación
 *Estado actual:* Completado (Frontend & Contract)

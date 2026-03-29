@@ -1,14 +1,16 @@
 import { Component, OnInit, signal, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { InmueblesService, PropertyDTO } from '../../../api';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { InmueblesService } from '../../../api/api/inmuebles.service';
+import { PropertyDTO } from '../../../api/model/propertyDTO';
 import mapboxgl from 'mapbox-gl';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-property-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './property-list.component.html',
   styleUrl: './property-list.component.css'
 })

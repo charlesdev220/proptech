@@ -18,8 +18,11 @@ model/models.ts
 model/pagePropertyDTO.ts
 model/problemDetail.ts
 model/propertyCreateDTO.ts
+model/propertyCreateDTOFeatures.ts
 model/propertyDTO.ts
 model/propertyDTOLocation.ts
+model/propertyDetailDTO.ts
+model/propertyDetailDTOAllOfFeatures.ts
 model/trustScoreDTO.ts
 model/trustScoreDTOFactorsInner.ts
 model/userProfileDTO.ts

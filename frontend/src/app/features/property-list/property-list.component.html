@@ -63,7 +63,7 @@
 
       <div class="grid grid-cols-1 gap-4">
         @for (prop of properties(); track prop.id) {
-          <div class="group bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer">
+          <div [routerLink]="['/property', prop.id]" class="group bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer">
             <div class="h-48 bg-slate-200 relative overflow-hidden">
                <!-- Image Placeholder using CSS grad -->
                <div class="w-full h-full bg-gradient-to-br from-slate-300 to-slate-400 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">

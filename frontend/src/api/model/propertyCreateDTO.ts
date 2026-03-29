@@ -8,6 +8,7 @@
  * Do not edit the class manually.
  */
 import { PropertyDTOLocation } from './propertyDTOLocation';
+import { PropertyCreateDTOFeatures } from './propertyCreateDTOFeatures';
 
 
 export interface PropertyCreateDTO { 
@@ -16,6 +17,8 @@ export interface PropertyCreateDTO {
     price: number;
     type: PropertyCreateDTO.TypeEnum;
     location: PropertyDTOLocation;
+    mediaIds?: Array<string>;
+    features?: PropertyCreateDTOFeatures;
 }
 export namespace PropertyCreateDTO {
     export const TypeEnum = {
