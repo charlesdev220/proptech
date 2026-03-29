@@ -2,6 +2,23 @@
 
 > Registro secuencial de tareas completadas según el PropTech_Implementation_Plan.md y WBS. El orden es cronológico inverso (lo más reciente arriba).
 
+### Qué hemos completado hasta ahora (Módulo de Carga Segura KYC):
+*Fase actual:* Fase 1: MVP - 1.3 Perfil de Usuario y Reputación
+*Estado actual:* Completado (Frontend & Contract)
+- ✔️ **Contract-First (OpenAPI)**: Añadido el endpoint POST `/profile/documents` dedicado exclusivamente a la verificación de KYC (DNI/Nóminas), regenerando la API en Angular.
+- ✔️ **Frontend (DocumentUploader)**: Creado `DocumentUploaderComponent` (Standalone + Signals) con validaciones de tamaño (5MB) e interfaz intuitiva Drag&Drop-like para la selección de archivos locales.
+- ✔️ **Integración SDD**: Integrado el componente uploader de documentos como Widget en el Dashboard Principal (`user-dashboard.ts`), enlazando el evento de éxito con la actualización general del Trust Score.
+
+
+### Qué hemos completado hasta ahora (Dashboard de Perfil y Trust Score):
+*Fase actual:* Fase 1: MVP - 1.3 Perfil de Usuario y Reputación
+*Estado actual:* Completado (Frontend & Integration)
+- ✔️ **Frontend (Dashboard)**: Creado `UserProfileComponent` utilizando Signals y componentes Standalone de Angular 17.
+- ✔️ **Diseño Premium**: Implementados gradientes dinámicos y badges visuales para los niveles de reputación (Bronze/Gold/Platinum).
+- ✔️ **Navegación**: Registrada la ruta `/profile` en `app.routes.ts` con carga perezosa (Lazy Loading).
+- ✔️ **Consumo de API**: Integradas las llamadas a `PerfilService` para obtener el perfil y el desglose del score en una sola vista.
+
+
 ### Qué hemos completado hasta ahora (Remediación de Seguridad y Sincronización):
 *Fase actual:* Fase 1: MVP - 1.3 Perfil de Usuario y Reputación
 *Estado actual:* Completado (Pushed to GitHub)

@@ -1,0 +1,126 @@
+import { Component, inject, output, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { PerfilService, MediaDTO } from '../../../../api';
+
+@Component({
+  selector: 'app-document-uploader',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
+    <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 text-white shadow-xl">
+      <h3 class="font-black text-lg mb-4 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        ¡Verifícate ahora!
+      </h3>
+      <p class="text-slate-400 text-sm leading-relaxed mb-6">
+        Sube tu DNI o nómina para alcanzar el nivel <span class="text-blue-400 font-bold">PLATINUM</span> y conseguir alquileres sin fianza.
+      </p>
+
+      <form (ngSubmit)="uploadDocument()" class="space-y-4">
+        <!-- Selector de Tipo -->
+        <div>
+          <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Tipo de Documento</label>
+          <select [(ngModel)]="documentType" name="type" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+            <option value="DNI">DNI / Pasaporte</option>
+            <option value="PAYSLIP">Nómina (Último mes)</option>
+          </select>
+        </div>
+
+        <!-- Dropzone / Input File -->
+        <div class="relative border-2 border-dashed border-slate-600 rounded-2xl p-6 text-center hover:border-blue-500 transition-colors cursor-pointer"
+             [class.border-blue-500]="selectedFile()" [class.bg-slate-800]="selectedFile()">
+          <input type="file" accept="image/jpeg,image/png,application/pdf" (change)="onFileSelected($event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+          
+          @if (!selectedFile()) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-slate-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            <p class="text-sm font-bold opacity-80">Haz clic o arrastra un archivo</p>
+            <p class="text-xs text-slate-500 mt-1">PDF, JPG o PNG (Max 5MB)</p>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-blue-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-sm font-bold text-blue-100 truncate w-full px-2">{{ selectedFile()?.name }}</p>
+            <p class="text-xs text-slate-400 mt-1">{{ (selectedFile()?.size || 0) / 1024 / 1024 | number:'1.1-2' }} MB</p>
+          }
+        </div>
+
+        <p class="text-red-400 text-xs font-bold" *ngIf="error()">{{ error() }}</p>
+
+        <!-- Submit Button -->
+        <button type="submit" [disabled]="!selectedFile() || uploading()" 
+                class="w-full relative overflow-hidden group py-4 bg-white text-slate-900 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          
+          @if (uploading()) {
+            <span class="flex items-center justify-center gap-2">
+              <svg class="animate-spin h-5 w-5 text-slate-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              SUBIENDO...
+            </span>
+          } @else {
+            <span>ENVIAR DOCUMENTO</span>
+          }
+        </button>
+      </form>
+    </div>
+  `,
+  styles: []
+})
+export class DocumentUploaderComponent {
+  private readonly perfilService = inject(PerfilService);
+
+  readonly uploadSuccess = output<MediaDTO>();
+
+  documentType: 'DNI' | 'PAYSLIP' = 'DNI';
+  selectedFile = signal<File | null>(null);
+  uploading = signal(false);
+  error = signal<string | null>(null);
+
+  onFileSelected(event: Event) {
+    this.error.set(null);
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      
+      // Validación estricta 5MB
+      if (file.size > 5 * 1024 * 1024) {
+        this.error.set('El archivo supera el límite de 5MB seguro.');
+        this.selectedFile.set(null);
+        return;
+      }
+      this.selectedFile.set(file);
+    }
+  }
+
+  uploadDocument() {
+    const file = this.selectedFile();
+    if (!file) return;
+
+    this.uploading.set(true);
+    this.error.set(null);
+
+    // Debido a OpenAPI Generator form-data handling, enviamos las partes
+    this.perfilService.profileDocumentsPost(
+      this.documentType as any,
+      file, 
+      'body' // observe
+    ).subscribe({
+      next: (response: MediaDTO) => {
+        this.uploading.set(false);
+        this.selectedFile.set(null);
+        this.uploadSuccess.emit(response);
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.uploading.set(false);
+        this.error.set('Fallo al subir archivo. Verifica el backend o tu conexión.');
+      }
+    });
+  }
+}

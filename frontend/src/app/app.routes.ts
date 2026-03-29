@@ -9,5 +9,9 @@ export const routes: Routes = [
   {
     path: 'search',
     loadComponent: () => import('./features/property-list/property-list.component').then(m => m.PropertyListComponent)
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('./features/user-dashboard/user-dashboard').then(m => m.UserProfileComponent)
   }
 ];

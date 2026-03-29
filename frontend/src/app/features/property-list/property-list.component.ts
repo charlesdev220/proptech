@@ -2,7 +2,7 @@ import { Component, OnInit, signal, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InmueblesService, PropertyDTO } from '../../../api';
-import * as mapboxgl from 'mapbox-gl';
+import mapboxgl from 'mapbox-gl';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -46,7 +46,7 @@ export class PropertyListComponent implements OnInit {
 
   initMap(): void {
     // Note: User must provide a valid Mapbox Token in environments/environment.ts
-    (mapboxgl as any)['accessToken'] = environment.mapboxToken;
+    mapboxgl.accessToken = environment.mapboxToken;
     
     this.map = new mapboxgl.Map({
       container: 'search-map',

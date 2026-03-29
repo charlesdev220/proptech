@@ -210,6 +210,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/TrustScoreDTO'
 
+  /profile/documents:
+    post:
+      summary: Subir un documento (DNI, Nómina) para verificación (KYC)
+      tags:
+        - Perfil
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                documentType:
+                  type: string
+                  enum: [DNI, PAYSLIP]
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Documento de verificación subido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaDTO'
+
 components:
   securitySchemes:
     bearerAuth:

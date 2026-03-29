@@ -1,6 +1,7 @@
 ---
 trigger: always_on
 ---
+
 ---
 description: Regla obligatoria para llevar el historial de implementacion como un Log secuencial "append-only".
 ---
@@ -26,7 +27,11 @@ Debes apegarte estrictamente a las siguientes normas al actualizar el historial:
    *Fase actual:* [Ej: Fase 1: MVP - 1.2 Core de Gestión de Inmuebles]
    *Estado actual:* [En Proceso / Completado]
    - ✔️ **[Nombre de la Tarea/Atributo]:** [Descripción técnica de 1 línea]
+   *Próximos pasos:* [Ej: Fase 1.3 - Implementar Dashboard de Perfil en Angular con Visualización de Scoring.]
    ```
 
 3. **Reporte de Transparencia (En tu respuesta al Humano):**
    Al concluir tu turno y generar la respuesta, especifica claramente que has "Añadido una nueva entrada al principio del historial de implementación", indicando la Tarea y la Fase.
+
+4. **Comprobación del Frontend:**
+   - Inmediatamente después de añadir la entrada al historial, es obligatorio realizar una comprobación del buen funcionamiento del frontend para asegurar que los cambios no han introducido regresiones o errores visuales/funcionales.
