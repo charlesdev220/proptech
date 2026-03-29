@@ -38,8 +38,17 @@ export class PropertyListComponent implements OnInit {
   constructor() {
     // Automatically fetch data when filters change
     effect(() => {
+      // Track signals
+      this.minPrice();
+      this.maxPrice();
+      this.lat();
+      this.lng();
+      this.radius();
+      this.page();
+      this.size();
+      
       this.fetchProperties();
-    });
+    }, { allowSignalWrites: true });
   }
 
   ngOnInit(): void {
