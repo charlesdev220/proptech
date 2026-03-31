@@ -4,13 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { InmueblesService } from '../../../api/api/inmuebles.service';
 import { PropertyDTO } from '../../../api/model/propertyDTO';
-import mapboxgl from 'mapbox-gl';
+import * as L from 'leaflet';
+import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-property-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, LeafletModule],
   templateUrl: './property-list.component.html',
   styleUrl: './property-list.component.css'
 })
@@ -32,8 +33,18 @@ export class PropertyListComponent implements OnInit {
   size = signal(20);
 
   // Map Instance
-  map!: mapboxgl.Map;
-  markers: mapboxgl.Marker[] = [];
+  map!: L.Map;
+  markers: L.Marker[] = [];
+  options: L.MapOptions = {
+    layers: [
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      })
+    ],
+    zoom: 12,
+    center: L.latLng(40.4168, -3.7038)
+  };
 
   constructor() {
     // Automatically fetch data when filters change
@@ -52,27 +63,16 @@ export class PropertyListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.initMap();
   }
 
-  initMap(): void {
-    // Note: User must provide a valid Mapbox Token in environments/environment.ts
-    mapboxgl.accessToken = environment.mapboxToken;
+  onMapReady(map: L.Map): void {
+    this.map = map;
     
-    this.map = new mapboxgl.Map({
-      container: 'search-map',
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [this.lng()!, this.lat()!],
-      zoom: 12
-    });
-
     this.map.on('moveend', () => {
       const center = this.map.getCenter();
       this.lat.set(center.lat);
       this.lng.set(center.lng);
     });
-
-    this.map.addControl(new mapboxgl.NavigationControl());
   }
 
   fetchProperties(): void {
@@ -113,9 +113,8 @@ export class PropertyListComponent implements OnInit {
     // Add new markers
     props.forEach(p => {
       if (p.location?.latitude && p.location?.longitude) {
-        const marker = new mapboxgl.Marker()
-          .setLngLat([p.location.longitude, p.location.latitude])
-          .setPopup(new mapboxgl.Popup().setHTML(`<h5>${p.title}</h5><p>${p.price}€</p>`))
+        const marker = L.marker([p.location.latitude, p.location.longitude])
+          .bindPopup(`<h5>${p.title}</h5><p>${p.price}€</p>`)
           .addTo(this.map);
         this.markers.push(marker);
       }

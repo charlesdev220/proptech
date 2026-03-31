@@ -2,7 +2,12 @@
   
   <!-- Left Side: Map -->
   <div class="flex-grow h-full relative border-r border-slate-200">
-    <div id="search-map" class="w-full h-full"></div>
+    <div id="search-map" 
+         class="w-full h-full"
+         leaflet
+         [leafletOptions]="options"
+         (leafletMapReady)="onMapReady($event)">
+    </div>
     
     <!-- Floating Filter Overview or Floating Search Bar can go here -->
     <div class="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur shadow-xl rounded-2xl p-4 border border-slate-200 max-w-sm">

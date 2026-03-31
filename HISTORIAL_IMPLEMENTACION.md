@@ -2,6 +2,15 @@
 
 > Registro secuencial de tareas completadas según el PropTech_Implementation_Plan.md y WBS. El orden es cronológico inverso (lo más reciente arriba).
 
+### Qué hemos completado hasta ahora (Migración de Mapbox a Leaflet):
+*Fase actual:* Fase 1: MVP - 1.2 Core de Gestión de Inmuebles
+*Estado actual:* Completado
+- ✔️ **Frontend (Mapa Leaflet)**: Migrado el motor de mapas de Mapbox GL JS a Leaflet con OpenStreetMap para eliminar la dependencia de tokens y reducir el tamaño del bundle.
+- ✔️ **Refactorización de Componentes**: Actualizado `PropertyListComponent` para usar `ngx-leaflet` y lógica de marcadores/eventos de Leaflet. 
+- ✔️ **Configuración de Entorno**: Eliminado el secreto `MAPBOX_TOKEN` tanto de los scripts de construcción como del archivo `.env.template`.
+- ✔️ **Optimización de Estilos**: Limpieza de imports CSS redundantes y configuración centralizada de estilos de mapas en `angular.json`.
+*Próximos pasos:* Continuar con el flujo de publicación de inmuebles y gestión de medios en S3.
+
 ### Qué hemos completado hasta ahora (Ficha de Detalle de Inmueble):
 *Fase actual:* Fase 1: MVP - 1.2 Core de Gestión de Inmuebles
 *Estado actual:* Completado (Full-Stack)
