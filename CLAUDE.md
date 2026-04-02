@@ -128,9 +128,9 @@ Los artefactos se persisten en `.sdd/changes/{change-name}/`.
 
 ## 🗺️ Estado Actual
 
-**Rama:** `feature/fase1MapBox` | **Fase:** 1.3 Perfiles y Lanzamiento Beta
+**Rama:** `feature/fase1MapBox` | **Fase:** 1.3 Completada ✅ → Fase 2
 
-**Próximos pasos:** Go-Live Localizado (Stress Testing + Onboarding beta) → Fase 2 KYC
+**Próximos pasos:** Fase 2 — KYC biométrico (Onfido/Veriff), Scoring v2, Motor de Reputación Bidireccional
 
 ---
 

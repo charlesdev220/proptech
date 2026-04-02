@@ -34,8 +34,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/properties/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/properties", "/api/v1/properties/**").permitAll()
-                .requestMatchers("/api/v1/profile/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/properties", "/api/v1/properties/**").authenticated()
+                .requestMatchers("/api/v1/profile/**").authenticated()
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

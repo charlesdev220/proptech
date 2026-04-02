@@ -2,6 +2,18 @@
 
 > Registro secuencial de tareas completadas según el PropTech_Implementation_Plan.md y WBS. El orden es cronológico inverso (lo más reciente arriba).
 
+### Qué hemos completado hasta ahora (Go-Live Localizado — Beta 100 Usuarios):
+*Fase actual:* Fase 1: MVP - 1.3 Perfiles y Lanzamiento Beta
+*Estado actual:* Completado
+- ✔️ **Security Hardening**: `POST /properties` y `POST /profile/documents` ahora requieren autenticación JWT — eliminada brecha de acceso anónimo en `SecurityConfig`.
+- ✔️ **GlobalExceptionHandler**: `@RestControllerAdvice` con `ProblemDetail` (RFC 7807) para 404, 400, 403 y 500 — ningún stacktrace Java llega al cliente.
+- ✔️ **POST /profile/documents**: Endpoint KYC implementado en `ProfileController` con validación de tipo (JPEG/PNG/PDF) y límite de 5MB; delega a `MediaService` existente.
+- ✔️ **DataSeeder Beta**: Ampliado a 20 usuarios con TrustScore variado (20–95) y 50 propiedades distribuidas en 5 barrios de Madrid (Malasaña, Lavapiés, Salamanca, Chamberí, Retiro).
+- ✔️ **Stress Testing k6**: Scripts `smoke-login.js`, `smoke-properties.js`, `smoke-trust-score.js` + orquestador `smoke-all.sh`; umbrales p95 < 800ms y error rate < 2% a 50 VUs.
+- ✔️ **CI/CD Tests**: GitHub Actions ejecuta `mvn test` (backend) y `ng test --watch=false --browsers=ChromeHeadless` (frontend) en cada PR — tests rotos bloquean merge.
+- ✔️ **Tests Unitarios**: `GlobalExceptionHandlerTest` (4 scenarios) + `ProfileControllerDocumentTest` (4 scenarios) verificando REQ-02 y REQ-03.
+*Próximos pasos:* Fase 2 — KYC biométrico (Onfido/Veriff), Scoring v2 y Motor de Reputación Bidireccional.
+
 ### Qué hemos completado hasta ahora (Módulo de Autenticación JWT Full-Stack):
 *Fase actual:* Fase 1: MVP - 1.3 Perfiles y Lanzamiento Beta
 *Estado actual:* Completado (Full-Stack)
