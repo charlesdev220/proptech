@@ -1,15 +1,17 @@
 package com.proptech.backend.infrastructure.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKey;
-import java.util.Date;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -18,18 +20,22 @@ import java.util.function.Function;
 public class JwtService {
 
     @Value("${jwt.secret}")
-    private String secretKey;
+    private String secretKey; // expected base64-encoded key
 
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
+    private final ObjectMapper mapper = new ObjectMapper();
+
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        Map<String, Object> claims = decodePayload(token);
+        Object sub = claims.get("sub");
+        return sub != null ? sub.toString() : null;
     }
 
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+    public <T> T extractClaim(String token, Function<Map<String, Object>, T> resolver) {
+        Map<String, Object> claims = decodePayload(token);
+        return resolver.apply(claims);
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -37,42 +43,77 @@ public class JwtService {
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return buildToken(extraClaims, userDetails, jwtExpiration);
-    }
+        long now = System.currentTimeMillis() / 1000L;
+        Map<String, Object> payload = new HashMap<>();
+        if (extraClaims != null) payload.putAll(extraClaims);
+        payload.put("sub", userDetails.getUsername());
+        payload.put("iat", now);
+        payload.put("exp", now + (jwtExpiration / 1000L));
 
-    private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
-        return Jwts.builder()
-                .claims(extraClaims)
-                .subject(userDetails.getUsername())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSignInKey(), Jwts.SIG.HS256)
-                .compact();
+        try {
+            String headerJson = mapper.writeValueAsString(Map.of("alg", "HS256", "typ", "JWT"));
+            String payloadJson = mapper.writeValueAsString(payload);
+            String headerB = Base64.getUrlEncoder().withoutPadding().encodeToString(headerJson.getBytes(StandardCharsets.UTF_8));
+            String payloadB = Base64.getUrlEncoder().withoutPadding().encodeToString(payloadJson.getBytes(StandardCharsets.UTF_8));
+            String signingInput = headerB + "." + payloadB;
+            String signature = signHmacSha256(signingInput, secretKey);
+            return signingInput + "." + signature;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        if (!verifySignature(token)) return false;
+        String username = extractUsername(token);
+        if (username == null || !username.equals(userDetails.getUsername())) return false;
+        Map<String, Object> claims = decodePayload(token);
+        Object exp = claims.get("exp");
+        if (exp != null) {
+            long expL = Long.parseLong(exp.toString());
+            return expL * 1000L > System.currentTimeMillis();
+        }
+        return true;
     }
 
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    private boolean verifySignature(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length != 3) return false;
+            String signingInput = parts[0] + "." + parts[1];
+            String expectedSig = signHmacSha256(signingInput, secretKey);
+            return constantTimeEquals(expectedSig, parts[2]);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+    private Map<String, Object> decodePayload(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length < 2) return Map.of();
+            byte[] decoded = Base64.getUrlDecoder().decode(parts[1]);
+            return mapper.readValue(decoded, new TypeReference<Map<String, Object>>() {});
+        } catch (Exception e) {
+            return Map.of();
+        }
     }
 
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSignInKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+    private String signHmacSha256(String data, String base64Key) throws NoSuchAlgorithmException, InvalidKeyException {
+        byte[] keyBytes = Base64.getDecoder().decode(base64Key);
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(new SecretKeySpec(keyBytes, "HmacSHA256"));
+        byte[] sig = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(sig);
     }
 
-    private SecretKey getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+    private boolean constantTimeEquals(String a, String b) {
+        if (a == null || b == null) return false;
+        if (a.length() != b.length()) return false;
+        int result = 0;
+        for (int i = 0; i < a.length(); i++) {
+            result |= a.charAt(i) ^ b.charAt(i);
+        }
+        return result == 0;
     }
 }

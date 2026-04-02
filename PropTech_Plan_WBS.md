@@ -339,11 +339,8 @@ La WBS se organiza en 9 áreas de trabajo y 4 fases temporales. Cada área se de
 **3.1 Subida Segura de Documentos**
 
 -   3.1.1 Flujo de carga con validación de tipo y tamaño de archivo
-
--   3.1.2 Almacenamiento cifrado en S3 con pre-signed URLs de tiempo limitado
-
+-   3.1.2 Almacenamiento cifrado en **PostgreSQL (Large Objects)**, reemplazando S3 para almacenamiento local de medios
 -   3.1.3 Cuarentena antivirus (ClamAV o servicio cloud) antes de procesado
-
 -   3.1.4 Permisos granulares: propietario del documento controla quién accede
 
 **3.2 Verificación de Identidad (KYC)**

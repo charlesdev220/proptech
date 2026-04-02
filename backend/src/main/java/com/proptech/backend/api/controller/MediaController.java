@@ -33,11 +33,12 @@ public class MediaController {
                     .path(id)
                     .toUriString();
                     
-            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                    "id", id,
                     "url", fileDownloadUri,
                     "fileName", file.getOriginalFilename(),
                     "size", file.getSize()
-            ));
+                ));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

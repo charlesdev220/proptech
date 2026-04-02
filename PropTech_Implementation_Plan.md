@@ -43,7 +43,7 @@ graph TD
 ### 1.2 Core de Gestión de Inmuebles (Semanas 5-12)
 - **Tarea: Motor de Publicación**
     - Subtarea: Formulario reactivo en Angular para subida de anuncios con compresión nativa Canvas.
-    - Subtarea: Microservicio de gestión de medios (PostgreSQL LOB Storage).
+    - Subtarea: Microservicio de gestión de medios (**PostgreSQL LOB Storage**, reemplazando S3 para almacenamiento local de medios).
 - **Tarea: Motor de Búsqueda Geoespacial**
     - Subtarea: Implementación de queries espaciales en el Backend.
     - Subtarea: Integración de Mapbox GL JS en el Frontend Angular.

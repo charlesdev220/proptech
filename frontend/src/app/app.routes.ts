@@ -7,8 +7,16 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
+    path: 'login',
+    loadComponent: () => import('./features/auth/login.component').then(m => m.LoginComponent)
+  },
+  {
     path: 'search',
     loadComponent: () => import('./features/property-list/property-list.component').then(m => m.PropertyListComponent)
+  },
+  {
+    path: 'publish',
+    loadComponent: () => import('./features/property-publish/property-publish.component').then(m => m.PropertyPublishComponent)
   },
   {
     path: 'property/:id',

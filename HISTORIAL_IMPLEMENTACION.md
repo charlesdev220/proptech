@@ -2,6 +2,20 @@
 
 > Registro secuencial de tareas completadas según el PropTech_Implementation_Plan.md y WBS. El orden es cronológico inverso (lo más reciente arriba).
 
+### Qué hemos completado hasta ahora (Módulo de Autenticación JWT Full-Stack):
+*Fase actual:* Fase 1: MVP - 1.3 Perfiles y Lanzamiento Beta
+*Estado actual:* Completado (Full-Stack)
+- ✔️ **Contrato API (Contract-First)**: Añadido endpoint `POST /auth/register` y schema `RegisterRequest` al OpenAPI.
+- ✔️ **Backend - AuthController**: Refactorizado eliminando el doble mapping conflictivo con `AuthApi`. Ahora expone `POST /api/v1/auth/login` y `POST /api/v1/auth/register` bajo `@RequestMapping("/api/v1/auth")`.
+- ✔️ **Backend - PasswordEncoder**: Añadido bean `DelegatingPasswordEncoder` en `SecurityConfig` (soporta `{noop}` del seeder de dev y BCrypt para nuevos registros).
+- ✔️ **Backend - CustomUserDetailsService + JwtAuthFilter**: Integrados en el filter chain de Spring Security para validar tokens JWT en cada request.
+- ✔️ **Frontend - AuthService**: Servicio standalone con signals (`isLoggedIn`) y métodos `login()`, `register()`, `logout()`. Persiste el token en `localStorage`.
+- ✔️ **Frontend - AuthInterceptor**: Interceptor funcional (`HttpInterceptorFn`) que adjunta `Authorization: Bearer <token>` a todas las peticiones HTTP.
+- ✔️ **Frontend - LoginComponent**: Componente standalone con tabs Login/Registro, validaciones de formulario reactivo y navegación post-autenticación.
+- ✔️ **Frontend - Routing y Config**: Añadidas rutas `/login` y `/publish`. Registrado el interceptor vía `provideHttpClient(withInterceptors([authInterceptor]))`.
+- ✔️ **Frontend - Navbar**: Botón "Login" conectado a `/login`; cambia a "Cerrar sesión" cuando el usuario está autenticado (reactivo por Signal).
+*Próximos pasos:* Go-Live Localizado - Pruebas de carga (Stress Testing) y onboarding de primeros usuarios beta.
+
 ### Qué hemos completado hasta ahora (Migración de Mapbox a Leaflet):
 *Fase actual:* Fase 1: MVP - 1.2 Core de Gestión de Inmuebles
 *Estado actual:* Completado
@@ -64,8 +78,12 @@
 ### Qué hemos completado hasta ahora (Migración de Almacenamiento Media NoSQL/LOB):
 *Fase actual:* Fase 1: MVP - 1.2 Core de Gestión de Inmuebles
 *Estado actual:* Completado
-- ✔️ **Almacenamiento Local (PostgreSQL)**: Integradas las capas Entity, Service y Controller REST para `multipart/form-data` y servir blobs serializados vía stream.
-- ✔️ **Estrategia Compresión Frontend**: Aplicada lógica Nativa Canvas en Angular 17. Límite de resolución HD (1280px a 70% calidad). Video protegido a 15MB.
+- ✔️ **Almacenamiento Local (PostgreSQL):** Migrado el almacenamiento de medios desde S3 a PostgreSQL con soporte para blobs (Large Objects). Esto incluye la integración de capas Entity, Service y Controller REST para manejar `multipart/form-data` y servir blobs serializados vía stream.
+- ✔️ **Estrategia Compresión Frontend:** Aplicada lógica Nativa Canvas en Angular 17. Límite de resolución HD (1280px a 70% calidad). Video protegido a 15MB.
+- **Motivación del Cambio:**
+  - Reducción de dependencias externas (eliminación de S3).
+  - Optimización de costos al reutilizar PostgreSQL como base de datos principal.
+  - Mayor control sobre los datos almacenados.
 
 ### Qué hemos completado hasta ahora (Motor de Publicación Fullstack):
 *Fase actual:* Fase 1: MVP - 1.2 Core de Gestión de Inmuebles

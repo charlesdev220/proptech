@@ -11,13 +11,22 @@
     <nav class="hidden md:flex items-center gap-8 text-sm font-bold text-slate-500 uppercase tracking-widest">
       <a routerLink="/search" routerLinkActive="text-blue-600 border-b-2 border-blue-600" class="py-5 transition-colors">Buscador</a>
       <a routerLink="/publish" routerLinkActive="text-blue-600 border-b-2 border-blue-600" class="py-5 transition-colors hover:text-slate-800">Publicar</a>
-      <a routerLink="/profile" class="py-5 transition-colors hover:text-slate-800">Perfil</a>
+      <a routerLink="/profile" routerLinkActive="text-blue-600 border-b-2 border-blue-600" class="py-5 transition-colors hover:text-slate-800">Perfil</a>
     </nav>
 
     <div class="flex items-center gap-4">
-      <button class="bg-slate-900 text-white px-5 py-2 rounded-full text-sm font-bold hover:bg-slate-800 transition-all active:scale-95">
-        Login
-      </button>
+      <ng-container *ngIf="authService.isLoggedIn(); else loginBtn">
+        <button (click)="authService.logout()"
+          class="bg-slate-100 text-slate-700 px-5 py-2 rounded-full text-sm font-bold hover:bg-slate-200 transition-all active:scale-95">
+          Cerrar sesión
+        </button>
+      </ng-container>
+      <ng-template #loginBtn>
+        <button routerLink="/login"
+          class="bg-slate-900 text-white px-5 py-2 rounded-full text-sm font-bold hover:bg-slate-800 transition-all active:scale-95">
+          Login
+        </button>
+      </ng-template>
     </div>
   </header>
 

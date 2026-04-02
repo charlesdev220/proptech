@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(git -C /Users/charles/Documents/apps/Proptech branch -a)",
+      "Bash(git:*)"
+    ]
+  }
+}

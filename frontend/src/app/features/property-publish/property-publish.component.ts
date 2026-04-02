@@ -117,7 +117,7 @@ export class PropertyPublishComponent {
     if (this.propertyForm.valid && this.selectedFiles().length > 0) {
       this.isUploading.set(true);
       
-      const mediaUrls: string[] = [];
+      const mediaIds: string[] = [];
 
       try {
         // En un entorno de producción, esto debería usar Promese.all o secuencial estricto.
@@ -126,13 +126,13 @@ export class PropertyPublishComponent {
           const formData = new FormData();
           formData.append('file', compressedBlob, file.name);
 
-          const res = await this.http.post<{url: string}>('/api/v1/media/upload', formData).toPromise();
-          if (res?.url) mediaUrls.push(res.url);
+          const res = await this.http.post<{id?: string, url?: string}>('/api/v1/media/upload', formData).toPromise();
+          if (res?.id) mediaIds.push(res.id);
         }
 
         const payload = {
           ...this.propertyForm.value,
-          mediaUrls: mediaUrls
+          mediaIds: mediaIds
         };
         
         await this.http.post('/api/v1/properties', payload).toPromise();
