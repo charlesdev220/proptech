@@ -2,6 +2,8 @@ package com.proptech.backend.domain.service;
 
 import com.proptech.backend.api.dto.PropertyCreateDTO;
 import com.proptech.backend.api.dto.PropertyDTO;
+import com.proptech.backend.domain.exception.PropertyNotFoundException;
+import com.proptech.backend.domain.exception.UserNotFoundException;
 import com.proptech.backend.infrastructure.mapper.PropertyMapper;
 import com.proptech.backend.infrastructure.persistence.entity.PropertyEntity;
 import com.proptech.backend.infrastructure.persistence.entity.UserEntity;
@@ -35,22 +37,40 @@ public class PropertyService {
             BigDecimal minPrice, BigDecimal maxPrice,
             Double lat, Double lng, Double radius,
             Pageable pageable) {
-        
-        return propertyRepository.searchProperties(minPrice, maxPrice, lat, lng, radius, pageable)
-                .map(propertyMapper::toDto);
+
+        Page<PropertyEntity> page = propertyRepository.searchProperties(
+                minPrice, maxPrice, lat, lng, radius, pageable);
+
+        // Collect all property IDs and fetch their first media in one query
+        List<UUID> ids = page.getContent().stream()
+                .map(PropertyEntity::getId).toList();
+
+        java.util.Map<UUID, String> thumbnailByPropertyId = new java.util.HashMap<>();
+        if (!ids.isEmpty()) {
+            mediaRepository.findFirstMediaByPropertyIds(ids)
+                    .forEach(m -> thumbnailByPropertyId.put(
+                            m.getProperty().getId(),
+                            "/api/v1/media/" + m.getId()));
+        }
+
+        return page.map(entity -> {
+            PropertyDTO dto = propertyMapper.toDto(entity);
+            dto.setThumbnailUrl(thumbnailByPropertyId.get(entity.getId()));
+            return dto;
+        });
     }
 
     @Transactional(readOnly = true)
     public PropertyDetailDTO getPropertyById(UUID id) {
-        return propertyRepository.findById(id)
+        return propertyRepository.findByIdWithMedia(id)
                 .map(propertyMapper::toDetailDto)
-                .orElseThrow(() -> new RuntimeException("Inmueble no encontrado: " + id));
+                .orElseThrow(() -> new PropertyNotFoundException(id.toString()));
     }
 
     @Transactional(readOnly = true)
     public List<MediaDTO> getMediaForProperty(UUID id) {
         PropertyEntity property = propertyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Inmueble no encontrado: " + id));
+                .orElseThrow(() -> new PropertyNotFoundException(id.toString()));
         
         return property.getMediaFiles().stream()
                 .map(m -> {
@@ -69,7 +89,7 @@ public class PropertyService {
                 .getAuthentication().getName();
         
         var owner = userRepository.findByEmail(currentUserEmail)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado en sesión: " + currentUserEmail));
+                .orElseThrow(() -> new UserNotFoundException(currentUserEmail));
 
         PropertyEntity entity = propertyMapper.toEntity(dto);
         entity.setOwner(owner);

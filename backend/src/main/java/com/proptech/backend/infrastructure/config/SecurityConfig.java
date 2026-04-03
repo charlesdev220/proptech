@@ -34,8 +34,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/properties/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/media/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/properties", "/api/v1/properties/**").authenticated()
                 .requestMatchers("/api/v1/profile/**").authenticated()
+                .requestMatchers("/api/v1/favorites/**").authenticated()
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

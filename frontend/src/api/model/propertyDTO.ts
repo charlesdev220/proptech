@@ -10,13 +10,14 @@
 import { PropertyDTOLocation } from './propertyDTOLocation';
 
 
-export interface PropertyDTO { 
+export interface PropertyDTO {
     id?: string;
     title?: string;
     description?: string;
     price?: number;
     type?: PropertyDTO.TypeEnum;
     location?: PropertyDTOLocation;
+    thumbnailUrl?: string;
     createdAt?: string;
 }
 export namespace PropertyDTO {

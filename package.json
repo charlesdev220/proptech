@@ -1,0 +1,21 @@
+{
+  "name": "proptech",
+  "version": "1.0.0",
+  "description": "Bienvenido al repositorio principal de la **Plataforma PropTech**, un ecosistema integral que revoluciona el mercado inmobiliario (alquiler y venta) al combinar un potente motor de anuncios clasificados con una red social bidireccional basada en la **reputación y confianza verificada**.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/charlesdev220/proptech.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/charlesdev220/proptech/issues"
+  },
+  "homepage": "https://github.com/charlesdev220/proptech#readme"
+}

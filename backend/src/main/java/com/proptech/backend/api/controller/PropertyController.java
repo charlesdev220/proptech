@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -59,6 +60,7 @@ public class PropertyController implements PropertiesApi {
     }
 
     @Override
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PropertyDTO> propertiesPost(PropertyCreateDTO propertyCreateDTO) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(propertyService.createProperty(propertyCreateDTO));

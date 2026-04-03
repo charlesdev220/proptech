@@ -2,6 +2,52 @@
 
 > Registro secuencial de tareas completadas según el PropTech_Implementation_Plan.md y WBS. El orden es cronológico inverso (lo más reciente arriba).
 
+### Qué hemos completado hasta ahora (Fix Imágenes — Media Endpoint Público):
+*Fase actual:* Fase 1: MVP - Hardening Post-Cierre (QA Visual Full-Stack)
+*Estado actual:* Completado
+- ✔️ **Bug Fix — 403 en `/api/v1/media/**`:** El endpoint `GET /api/v1/media/{id}` caía en `anyRequest().authenticated()` en `SecurityConfig`. El tag `<img>` del browser no puede adjuntar el JWT (no es una petición `HttpClient`), por lo que Spring Security devolvía 403 y la imagen no cargaba. Solución: agregar `.requestMatchers(HttpMethod.GET, "/api/v1/media/**").permitAll()` — las imágenes de propiedades son contenido público, no PII.
+- ✔️ **Diagnóstico con Playwright + DevTools:** Identificado el problema mediante `browser_evaluate` evaluando `fetch('/api/v1/media/{id}')` directamente en la página → status 403 confirmó que era un problema de autenticación, no de proxy ni de URL. También verificado `img.complete` y `img.naturalWidth === 0` para confirmar que el elemento estaba en el DOM pero no había cargado.
+- ✔️ **Lección — `loading="lazy"`:** Las cards fuera del viewport no disparan la carga de la imagen hasta que el usuario scrollea. Para verificar imágenes en tests E2E, usar `img.scrollIntoView()` antes de comprobar `naturalWidth`.
+*Lección clave:* `<img src="/api/...">` nunca adjunta tokens de autenticación. Todo endpoint que sirva recursos embebibles (imágenes, archivos) debe ser público o usar signed URLs con expiración.
+*Próximos pasos:* Fase 2 — KYC biométrico (Onfido/Veriff), Scoring v2, Motor de Reputación Bidireccional.
+
+### Qué hemos completado hasta ahora (Imágenes en Listado, Favoritos y Mapa):
+*Fase actual:* Fase 1: MVP - Hardening Post-Cierre (QA Visual Full-Stack)
+*Estado actual:* Completado
+- ✔️ **thumbnailUrl en PropertyDTO:** Agregado campo `thumbnailUrl` al contrato OpenAPI y al DTO generado. `PropertyService.searchProperties` enriquece la página de resultados con una segunda query bulk (`findFirstMediaByPropertyIds`) — un único JPQL con subquery evita N+1 sin tocar la query nativa PostGIS de búsqueda geoespacial.
+- ✔️ **Imágenes reales en el listado:** `property-list.component.html` reemplaza el placeholder `🏠` por `<img [src]="prop.thumbnailUrl">` cuando existe URL. `PropertyMapper` con `@Named("toThumbnailUrl")` construye la URL `/api/v1/media/{id}` a partir del primer `MediaEntity` de la colección.
+- ✔️ **Proxy Angular → Backend:** Creado `proxy.conf.json` y configurado en `angular.json` (`proxyConfig`). Las URLs relativas `/api/v1/media/{id}` del `<img>` se resuelven vía proxy a `http://localhost:8080` — elimina el problema de CORS/404 en dev.
+- ✔️ **Leaflet icons fix:** Agregado glob de assets de Leaflet en `angular.json` y `L.Icon.Default.mergeOptions` en ambos componentes de mapa (`PropertyListComponent`, `PropertyPublishComponent`) — fin del 404 de `marker-icon.png`.
+- ✔️ **Sistema de Favoritos Full-Stack:** Entidad `UserFavoriteEntity` + `UserFavoriteRepository` (persistencia en `user_favorites` con unique constraint). `FavoriteService` (Spring) con `addFavorite`/`removeFavorite`/`getUserFavorites`/`getUserFavoriteIds`. `FavoriteController` en `/api/v1/favorites` con `@PreAuthorize("isAuthenticated()")`.
+- ✔️ **FavoritesService (Angular):** Singleton con `signal<Set<string>>` para IDs favoritos, `isFavorite()` reactivo, `toggle()` con actualización optimista, `loadFavoriteIds()` cargado en `ngOnInit` del buscador.
+- ✔️ **Página /favorites:** `FavoriteListComponent` standalone en ruta `/favorites`. Grid de cards con thumbnail, precio, tipo y botón ✕ para remover. Redirige a `/login` si el usuario no está autenticado.
+- ✔️ **Marcador rojo en mapa:** `updateMapMarkers` usa `L.divIcon` (círculo rojo inline CSS) para propiedades favoritas vs. pin azul default para el resto — distinción visual inmediata sin activos adicionales.
+- ✔️ **Navbar — enlace Favoritos:** Añadido `<a routerLink="/favorites">♥ Favoritos</a>` en el header, visible únicamente cuando el usuario está autenticado (`@if (authService.isLoggedIn())`).
+- ✔️ **URL fix AuthService/PublishComponent:** Corregidas rutas hardcodeadas (`/auth/login` → `/api/v1/auth/login`, `/properties` → `/api/v1/properties`, `/media/upload` → `/api/v1/media/upload`). `apiUrl` centralizado en `environment.ts`.
+*Próximos pasos:* Fase 2 — KYC biométrico (Onfido/Veriff), Scoring v2, Motor de Reputación Bidireccional.
+
+### Qué hemos completado hasta ahora (Imágenes de Seed y Bug de URL en MediaDTO):
+*Fase actual:* Fase 1: MVP - Hardening Post-Cierre
+*Estado actual:* Completado
+- ✔️ **DataSeeder con Imágenes Reales:** `DataSeeder` ampliado para descargar 3 imágenes por propiedad desde loremflickr (20 URLs rotativas) usando `java.net.http.HttpClient` con follow-redirects. Cada imagen se persiste como `MediaEntity` (LOB) vinculada a su `PropertyEntity`. Fallos de red logean warning y no interrumpen el arranque.
+- ✔️ **Bug Fix — `mediaPreviews` con `url: null`:** El `PropertyMapper` mapeaba `mediaFiles → mediaPreviews` con MapStruct auto-mapping, pero `MediaEntity` no tiene campo `url` — solo `byte[] data` + `id`. Agregado método `toMediaDto()` que construye `URI.create("/api/v1/media/{id}")` y `toMediaDtoList()` anotado con `@Named` para uso explícito en el mapping.
+- ✔️ **EntityGraph para Detalle de Propiedad:** Agregado `findByIdWithMedia` en `PropertyRepository` con `@EntityGraph(attributePaths = {"mediaFiles", "owner"})` — garantiza carga eager de la colección lazy sin N+1. `PropertyService.getPropertyById` migrado a este método.
+*Próximos pasos:* Fase 2 — KYC biométrico (Onfido/Veriff), Scoring v2, Motor de Reputación Bidireccional.
+
+### Qué hemos completado hasta ahora (Cierre Fase 1 — Hardening + Geolocalización):
+*Fase actual:* Fase 1: MVP - 1.2/1.3 Cierre y Preparación Fase 2
+*Estado actual:* Completado
+- ✔️ **Excepciones Custom (Zero RuntimeException):** Creadas `MediaNotFoundException`, `PropertyNotFoundException`, `UserNotFoundException` (extienden `EntityNotFoundException`) — eliminados todos los `RuntimeException` y `TODO` de `MediaService` y `PropertyService`. Manejadas automáticamente por `GlobalExceptionHandler` como 404.
+- ✔️ **Defensa en Profundidad — `@PreAuthorize`:** Añadido `@PreAuthorize("isAuthenticated()")` explícito en `propertiesPost`, `getCurrentProfile`, `getTrustScore` y `uploadDocument` — complementa la protección de `SecurityConfig`.
+- ✔️ **k6 Password Sync:** Corregida credencial en `smoke-login.js` de `password123` a `admin123` — el stress test de login ahora pasa.
+- ✔️ **Angular 17+ Consistencia:** Eliminado último `*ngIf` en `property-list.component.html` → migrado a `@if`.
+- ✔️ **`environment.apiUrl` Centralizado:** Añadido `apiUrl` a `environment.ts`; `AuthService` ya no hardcodea `http://localhost:8080` — preparado para staging/prod.
+- ✔️ **Formulario de Publicación Completo:** Reescrito `PropertyPublishComponent` con secciones: información básica, ubicación con mapa Leaflet interactivo (clic para pin + geocoding inverso Nominatim), botón "Mi ubicación" (`navigator.geolocation`), input de dirección con forward-geocoding, y campos de características (habitaciones, baños, superficie, ascensor, parking, certificado energético A–G).
+- ✔️ **Búsqueda por Municipio:** Añadido input de geocodificación en buscador — el usuario escribe municipio/zona → Nominatim devuelve centro + bounding box → actualiza lat/lng/radio y centra el mapa automáticamente.
+- ✔️ **Layout Scroll Fix:** Corregido `overflow-hidden` → `overflow-auto` en `<main>` del `AppComponent` — formularios largos ahora hacen scroll correctamente sin romper el mapa full-height del buscador.
+- ✔️ **Planificación Actualizada:** Documentada tarea pendiente "Búsqueda por zona dibujada" (`leaflet-draw` + `ST_Intersects` PostGIS) en `PropTech_Implementation_Plan.md` y `PropTech_Plan_WBS.md` §3.3 para Fase 2.
+*Próximos pasos:* Fase 2 — KYC biométrico (Onfido/Veriff), Scoring v2, Motor de Reputación Bidireccional, Búsqueda por zona dibujada.
+
 ### Qué hemos completado hasta ahora (Go-Live Localizado — Beta 100 Usuarios):
 *Fase actual:* Fase 1: MVP - 1.3 Perfiles y Lanzamiento Beta
 *Estado actual:* Completado

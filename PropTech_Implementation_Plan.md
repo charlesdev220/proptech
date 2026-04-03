@@ -45,9 +45,16 @@ graph TD
     - Subtarea: Formulario reactivo en Angular para subida de anuncios con compresión nativa Canvas.
     - Subtarea: Microservicio de gestión de medios (**PostgreSQL LOB Storage**, reemplazando S3 para almacenamiento local de medios).
 - **Tarea: Motor de Búsqueda Geoespacial**
-    - Subtarea: Implementación de queries espaciales en el Backend.
-    - Subtarea: Integración de Mapbox GL JS en el Frontend Angular.
+    - Subtarea: Implementación de queries espaciales en el Backend (`ST_DWithin`).
+    - Subtarea: Integración de Leaflet + OpenStreetMap en el Frontend Angular (migrado de Mapbox).
     - Subtarea: Filtros dinámicos (Precio, Habitaciones, Superficie).
+    - Subtarea: Búsqueda por municipio con geocodificación Nominatim (entrada de texto → lat/lng/radio automático). ✅ Completado
+    - Subtarea: _(Pendiente Fase 2.1)_ **Búsqueda por zona dibujada** — Dibujo libre de polígono en mapa con `leaflet-draw`; backend acepta GeoJSON polygon vía nuevo endpoint `POST /properties/search` con query PostGIS `ST_Intersects`; diferenciador clave vs Idealista (ver WBS §3.3).
+- **Tarea: Formulario de Publicación con Geolocalización**
+    - Subtarea: Mapa Leaflet embebido — clic para colocar marcador y capturar lat/lng. ✅ Completado
+    - Subtarea: Botón "Mi ubicación" con `navigator.geolocation` + geocodificación inversa Nominatim. ✅ Completado
+    - Subtarea: Input de dirección con forward-geocoding (Enter → busca y centra el mapa). ✅ Completado
+    - Subtarea: Campos completos: habitaciones, baños, superficie, ascensor, parking, certificado energético. ✅ Completado
 
 ### 1.3 Perfiles y Lanzamiento Beta (Semanas 13-24)
 - **Tarea: Perfil de Usuario y Scoring Inicial**

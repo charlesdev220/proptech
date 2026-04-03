@@ -1,5 +1,6 @@
 package com.proptech.backend.domain.service;
 
+import com.proptech.backend.domain.exception.MediaNotFoundException;
 import com.proptech.backend.infrastructure.persistence.entity.MediaEntity;
 import com.proptech.backend.infrastructure.persistence.repository.MediaRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,6 @@ public class MediaService {
     @Transactional(readOnly = true)
     public MediaEntity getMedia(UUID id) {
         return mediaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Media not found with id: " + id)); // TODO: use custom exception
+                .orElseThrow(() -> new MediaNotFoundException(id.toString()));
     }
 }

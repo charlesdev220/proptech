@@ -1,6 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 import { tap, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
@@ -19,7 +20,7 @@ export class AuthService {
   isLoggedIn = signal<boolean>(!!localStorage.getItem(this.TOKEN_KEY));
 
   login(email: string, password: string): Observable<void> {
-    return this.http.post<AuthResponse>('/api/v1/auth/login', { email, password }).pipe(
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/api/v1/auth/login`, { email, password }).pipe(
       tap(res => {
         localStorage.setItem(this.TOKEN_KEY, res.token);
         this.isLoggedIn.set(true);
@@ -29,7 +30,7 @@ export class AuthService {
   }
 
   register(name: string, email: string, password: string): Observable<void> {
-    return this.http.post<AuthResponse>('/api/v1/auth/register', { name, email, password }).pipe(
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/api/v1/auth/register`, { name, email, password }).pipe(
       tap(res => {
         localStorage.setItem(this.TOKEN_KEY, res.token);
         this.isLoggedIn.set(true);

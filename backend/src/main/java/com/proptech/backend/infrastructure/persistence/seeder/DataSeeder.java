@@ -1,10 +1,13 @@
 package com.proptech.backend.infrastructure.persistence.seeder;
 
+import com.proptech.backend.infrastructure.persistence.entity.MediaEntity;
 import com.proptech.backend.infrastructure.persistence.entity.PropertyEntity;
 import com.proptech.backend.infrastructure.persistence.entity.UserEntity;
+import com.proptech.backend.infrastructure.persistence.repository.MediaRepository;
 import com.proptech.backend.infrastructure.persistence.repository.PropertyRepository;
 import com.proptech.backend.infrastructure.persistence.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -13,9 +16,16 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.List;
 
+@Slf4j
 @Component
 @Profile("dev")
 @RequiredArgsConstructor
@@ -23,7 +33,31 @@ public class DataSeeder implements CommandLineRunner {
 
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
+    private final MediaRepository mediaRepository;
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
+
+    private static final String[] IMAGE_URLS = {
+        "https://loremflickr.com/800/600/apartment,exterior?lock=1",
+        "https://loremflickr.com/800/600/apartment,interior?lock=2",
+        "https://loremflickr.com/800/600/bedroom,modern?lock=3",
+        "https://loremflickr.com/800/600/livingroom,apartment?lock=4",
+        "https://loremflickr.com/800/600/kitchen,apartment?lock=5",
+        "https://loremflickr.com/800/600/bathroom,apartment?lock=6",
+        "https://loremflickr.com/800/600/apartment,balcony?lock=7",
+        "https://loremflickr.com/800/600/apartment,building?lock=8",
+        "https://loremflickr.com/800/600/house,exterior?lock=9",
+        "https://loremflickr.com/800/600/penthouse?lock=10",
+        "https://loremflickr.com/800/600/apartment,exterior?lock=11",
+        "https://loremflickr.com/800/600/apartment,interior?lock=12",
+        "https://loremflickr.com/800/600/bedroom,cozy?lock=13",
+        "https://loremflickr.com/800/600/livingroom,modern?lock=14",
+        "https://loremflickr.com/800/600/kitchen,modern?lock=15",
+        "https://loremflickr.com/800/600/apartment,pool?lock=16",
+        "https://loremflickr.com/800/600/apartment,city?lock=17",
+        "https://loremflickr.com/800/600/condo?lock=18",
+        "https://loremflickr.com/800/600/realestate,apartment?lock=19",
+        "https://loremflickr.com/800/600/loft,apartment?lock=20"
+    };
 
     @Override
     public void run(String... args) {
@@ -153,7 +187,46 @@ public class DataSeeder implements CommandLineRunner {
                     .hasParking((boolean) d[9])
                     .energyCertificate((String) d[10])
                     .build();
-            propertyRepository.save(property);
+            PropertyEntity saved = propertyRepository.save(property);
+            attachImages(saved, i);
+        }
+    }
+
+    /** Assigns 3 images per property cycling through the URL pool. */
+    private void attachImages(PropertyEntity property, int propertyIndex) {
+        HttpClient http = HttpClient.newBuilder()
+                .followRedirects(HttpClient.Redirect.ALWAYS)
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+
+        for (int slot = 0; slot < 3; slot++) {
+            int urlIndex = (propertyIndex * 3 + slot) % IMAGE_URLS.length;
+            String url = IMAGE_URLS[urlIndex];
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .timeout(Duration.ofSeconds(15))
+                        .GET()
+                        .build();
+
+                HttpResponse<byte[]> response = http.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                if (response.statusCode() == 200) {
+                    byte[] imageData = response.body();
+                    String contentType = response.headers()
+                            .firstValue("content-type")
+                            .orElse("image/jpeg");
+
+                    MediaEntity media = new MediaEntity();
+                    media.setFileName("property-" + propertyIndex + "-img" + slot + ".jpg");
+                    media.setContentType(contentType);
+                    media.setData(imageData);
+                    media.setSize((long) imageData.length);
+                    media.setProperty(property);
+                    mediaRepository.save(media);
+                }
+            } catch (IOException | InterruptedException e) {
+                log.warn("No se pudo descargar imagen {} para propiedad {}: {}", url, property.getId(), e.getMessage());
+            }
         }
     }
 }

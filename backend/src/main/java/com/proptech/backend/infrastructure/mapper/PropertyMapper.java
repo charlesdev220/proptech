@@ -1,8 +1,10 @@
 package com.proptech.backend.infrastructure.mapper;
 
+import com.proptech.backend.api.dto.MediaDTO;
 import com.proptech.backend.api.dto.PropertyCreateDTO;
 import com.proptech.backend.api.dto.PropertyDTO;
 import com.proptech.backend.api.dto.PropertyDTOLocation;
+import com.proptech.backend.infrastructure.persistence.entity.MediaEntity;
 import com.proptech.backend.infrastructure.persistence.entity.PropertyEntity;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -13,6 +15,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -23,11 +26,12 @@ public interface PropertyMapper {
     GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(), 4326);
 
     @Mapping(target = "location", source = "entity", qualifiedByName = "toLocationDto")
+    @Mapping(target = "thumbnailUrl", source = "mediaFiles", qualifiedByName = "toThumbnailUrl")
     PropertyDTO toDto(PropertyEntity entity);
 
     @Mapping(target = "location", source = "entity", qualifiedByName = "toLocationDto")
     @Mapping(target = "fullAddress", source = "address")
-    @Mapping(target = "mediaPreviews", source = "mediaFiles")
+    @Mapping(target = "mediaPreviews", source = "mediaFiles", qualifiedByName = "toMediaDtoList")
     @Mapping(target = "features.rooms", source = "rooms")
     @Mapping(target = "features.bathrooms", source = "bathrooms")
     @Mapping(target = "features.surface", source = "surface")
@@ -69,6 +73,27 @@ public interface PropertyMapper {
             locationDto.getLongitude().doubleValue(),
             locationDto.getLatitude().doubleValue()
         ));
+    }
+
+    @Named("toThumbnailUrl")
+    default String toThumbnailUrl(java.util.List<MediaEntity> mediaFiles) {
+        if (mediaFiles == null || mediaFiles.isEmpty()) return null;
+        return "/api/v1/media/" + mediaFiles.get(0).getId();
+    }
+
+    @Named("toMediaDtoList")
+    default java.util.List<MediaDTO> toMediaDtoList(java.util.List<MediaEntity> mediaFiles) {
+        if (mediaFiles == null) return java.util.List.of();
+        return mediaFiles.stream().map(this::toMediaDto).toList();
+    }
+
+    default MediaDTO toMediaDto(MediaEntity entity) {
+        if (entity == null) return null;
+        MediaDTO dto = new MediaDTO();
+        dto.setUrl(URI.create("/api/v1/media/" + entity.getId()));
+        dto.setFileName(entity.getFileName());
+        dto.setSize(entity.getSize());
+        return dto;
     }
 
     default OffsetDateTime mapDateTime(LocalDateTime value) {

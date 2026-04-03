@@ -112,7 +112,9 @@ La plataforma se estructura en 8 módulos principales que interoperan a través 
 
 -   Mapa interactivo con dirección exacta (diferenciador clave vs competencia)
 
--   Búsqueda por radio, zona postal o municipio
+-   Búsqueda por radio, zona postal o municipio ✅ (geocodificación Nominatim implementada)
+
+-   **Búsqueda por zona dibujada en mapa** — El usuario dibuja un polígono libre sobre el mapa para definir exactamente el área de búsqueda (diferenciador vs Idealista, inspirado en Fotocasa). Requiere: `leaflet-draw` en frontend + endpoint `POST /properties/search` con parámetro GeoJSON polygon + query PostGIS `ST_Intersects`. _(Pendiente — planificado para Fase 2.1)_
 
 -   Búsqueda por IA: lenguaje natural (\'piso luminoso cerca del metro con terraza bajo 1200€\')
 

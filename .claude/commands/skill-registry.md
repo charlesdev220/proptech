@@ -46,6 +46,7 @@ Listar todos los archivos `.md` y extraer su propósito:
 | `wf-code-review` | Auditoría antes de merge |
 | `wf-database-migration` | Cambios de esquema |
 | `skill-creator` | Crear nuevos skills |
+| `playwright-e2e` | Testing E2E con MCP Playwright (flujos, auth, mapas, favoritos) |
 
 ### 2. Escanear `.claude/agents/`
 

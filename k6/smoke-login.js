@@ -15,7 +15,7 @@ const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 export default function () {
   const payload = JSON.stringify({
     email: 'juan@example.com',
-    password: 'password123',
+    password: 'admin123',
   });
 
   const res = http.post(`${BASE_URL}/api/v1/auth/login`, payload, {

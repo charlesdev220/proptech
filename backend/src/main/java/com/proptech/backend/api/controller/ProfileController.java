@@ -7,6 +7,7 @@ import com.proptech.backend.domain.service.MediaService;
 import com.proptech.backend.domain.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,16 +29,19 @@ public class ProfileController {
     private final MediaService mediaService;
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserProfileDTO> getCurrentProfile() {
         return ResponseEntity.ok(profileService.getCurrentProfile());
     }
 
     @GetMapping("/trust-score")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TrustScoreDTO> getTrustScore() {
         return ResponseEntity.ok(profileService.getTrustScoreDetails());
     }
 
     @PostMapping("/documents")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<MediaDTO> uploadDocument(@RequestParam("file") MultipartFile file) throws IOException {
         if (!ALLOWED_TYPES.contains(file.getContentType())) {
             throw new IllegalArgumentException(

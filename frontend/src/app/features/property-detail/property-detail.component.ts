@@ -4,6 +4,8 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { InmueblesService } from '../../../api/api/inmuebles.service';
 import { PropertyDetailDTO } from '../../../api/model/propertyDetailDTO';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { FavoritesService } from '../../core/favorites/favorites.service';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-property-detail',
@@ -124,9 +126,15 @@ import { toSignal } from '@angular/core/rxjs-interop';
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                 Contactar ahora
               </button>
-              <button class="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-bold py-4 rounded-xl transition-all duration-200">
-                Añadir a favoritos
-              </button>
+              @if (authService.isLoggedIn()) {
+                <button (click)="toggleFavorite()"
+                  [ngClass]="favoritesService.isFavorite(property()?.id)
+                    ? 'w-full font-bold py-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'
+                    : 'w-full font-bold py-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'">
+                  <span class="text-xl">{{ favoritesService.isFavorite(property()?.id) ? '\u2764\uFE0F' : '\u2661' }}</span>
+                  {{ favoritesService.isFavorite(property()?.id) ? 'Guardado en favoritos' : 'A\u00F1adir a favoritos' }}
+                </button>
+              }
             </div>
 
             <!-- Safety Banner -->
@@ -151,15 +159,28 @@ import { toSignal } from '@angular/core/rxjs-interop';
 export class PropertyDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private inmueblesService = inject(InmueblesService);
-  
+  favoritesService = inject(FavoritesService);
+  authService = inject(AuthService);
+
   property = signal<PropertyDetailDTO | null>(null);
 
   ngOnInit(): void {
+    if (this.authService.isLoggedIn()) {
+      this.favoritesService.loadFavoriteIds();
+    }
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.inmueblesService.propertiesIdGet(id).subscribe(data => {
         this.property.set(data);
       });
+    }
+  }
+
+  toggleFavorite(): void {
+    const id = this.property()?.id;
+    if (id) {
+      this.favoritesService.toggle(id);
     }
   }
 }

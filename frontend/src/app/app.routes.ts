@@ -23,6 +23,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/property-detail/property-detail.component').then(m => m.PropertyDetailComponent)
   },
   {
+    path: 'favorites',
+    loadComponent: () => import('./features/favorite-list/favorite-list.component').then(m => m.FavoriteListComponent)
+  },
+  {
     path: 'profile',
     loadComponent: () => import('./features/user-dashboard/user-dashboard').then(m => m.UserProfileComponent)
   }

@@ -378,6 +378,9 @@ components:
               type: number
             address:
               type: string
+        thumbnailUrl:
+          type: string
+          description: URL de la primera imagen de la propiedad (thumbnail para listados)
         createdAt:
           type: string
           format: date-time
