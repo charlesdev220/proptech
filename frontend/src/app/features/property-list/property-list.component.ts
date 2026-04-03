@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, effect, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -7,6 +7,7 @@ import { InmueblesService } from '../../../api/api/inmuebles.service';
 import { PropertyDTO } from '../../../api/model/propertyDTO';
 import { FavoritesService } from '../../core/favorites/favorites.service';
 import { AuthService } from '../../core/auth/auth.service';
+import { IsochroneService, GeoJsonGeometry } from '../../core/isochrone/isochrone.service';
 import * as L from 'leaflet';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 
@@ -29,6 +30,7 @@ import { environment } from '../../../environments/environment';
 export class PropertyListComponent implements OnInit {
   private propertyService = inject(InmueblesService);
   private http = inject(HttpClient);
+  private isochroneService = inject(IsochroneService);
   favoritesService = inject(FavoritesService);
   private authService = inject(AuthService);
 
@@ -46,6 +48,16 @@ export class PropertyListComponent implements OnInit {
   page = signal(0);
   size = signal(20);
 
+  // Search mode signals
+  searchMode = signal<'radius' | 'draw' | 'neighborhoods' | 'isochrone'>('radius');
+  currentPolygon = signal<GeoJsonGeometry | null>(null);
+  selectedNeighborhoodIds = signal<Set<string>>(new Set());
+  neighborhoods = signal<any[]>([]);
+  isochroneOriginLat = signal<number | null>(null);
+  isochroneOriginLng = signal<number | null>(null);
+  isochroneMinutes = signal<number>(15);
+  isochroneError = signal<string | null>(null);
+
   // Municipality search
   municipalityQuery = '';
   municipalityError = signal<string | null>(null);
@@ -53,6 +65,9 @@ export class PropertyListComponent implements OnInit {
   // Map Instance
   map!: L.Map;
   markers: L.Marker[] = [];
+  private drawLayer: L.Layer | null = null;
+  private isochroneLayer: L.Layer | null = null;
+
   options: L.MapOptions = {
     layers: [
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -67,7 +82,14 @@ export class PropertyListComponent implements OnInit {
   constructor() {
     // Automatically fetch data when filters change
     effect(() => {
-      // Track signals
+      // Track polygon signal first — if present, polygon search takes precedence
+      const polygon = this.currentPolygon();
+      if (polygon) {
+        this.searchWithPolygon();
+        return;
+      }
+
+      // Fallback to radius-based search
       this.minPrice();
       this.maxPrice();
       this.lat();
@@ -75,7 +97,7 @@ export class PropertyListComponent implements OnInit {
       this.radius();
       this.page();
       this.size();
-      
+
       this.fetchProperties();
     }, { allowSignalWrites: true });
   }
@@ -84,16 +106,63 @@ export class PropertyListComponent implements OnInit {
     if (this.authService.isLoggedIn()) {
       this.favoritesService.loadFavoriteIds();
     }
+    this.loadNeighborhoods();
   }
 
   onMapReady(map: L.Map): void {
     this.map = map;
-    
+
     this.map.on('moveend', () => {
-      const center = this.map.getCenter();
-      this.lat.set(center.lat);
-      this.lng.set(center.lng);
+      // Only update lat/lng from map pan when in radius mode and no polygon active
+      if (this.searchMode() === 'radius' && !this.currentPolygon()) {
+        const center = this.map.getCenter();
+        this.lat.set(center.lat);
+        this.lng.set(center.lng);
+      }
     });
+
+    // Initialize draw control when map is ready
+    this.initDrawControl();
+  }
+
+  private initDrawControl(): void {
+    // leaflet-draw integration — activates after npm install leaflet-draw
+    try {
+      const L_draw = (L as any);
+      if (!L_draw.Control?.Draw) return;
+
+      const drawControl = new L_draw.Control.Draw({
+        draw: {
+          polygon: true,
+          polyline: false,
+          rectangle: false,
+          circle: false,
+          circlemarker: false,
+          marker: false
+        },
+        edit: false
+      });
+
+      this.map.addControl(drawControl);
+
+      this.map.on(L_draw.Draw.Event.CREATED, (event: any) => {
+        // Remove previous draw layer
+        if (this.drawLayer) {
+          this.map.removeLayer(this.drawLayer);
+        }
+
+        this.drawLayer = event.layer;
+        this.map.addLayer(event.layer);
+
+        // Convert drawn polygon to GeoJSON geometry
+        const geoJson = (event.layer as L.Polygon).toGeoJSON();
+        const geometry = geoJson.geometry as GeoJsonGeometry;
+        this.currentPolygon.set(geometry);
+      });
+    } catch {
+      // leaflet-draw not installed yet — draw mode will be unavailable
+      console.warn('leaflet-draw not available. Run npm install to enable draw mode.');
+    }
   }
 
   fetchProperties(): void {
@@ -126,6 +195,123 @@ export class PropertyListComponent implements OnInit {
     });
   }
 
+  private searchWithPolygon(): void {
+    const polygon = this.currentPolygon();
+    if (!polygon) return;
+    this.loading.set(true);
+    this.http.post<any>('/api/v1/properties/search', {
+      polygon,
+      minPrice: this.minPrice(),
+      maxPrice: this.maxPrice(),
+      page: this.page(),
+      size: this.size()
+    }).subscribe({
+      next: (res) => {
+        this.properties.set(res.content ?? []);
+        this.totalElements.set(res.totalElements ?? 0);
+        this.updateMapMarkers(res.content ?? []);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  loadNeighborhoods(): void {
+    this.http.get<any[]>('/api/v1/neighborhoods').subscribe({
+      next: (data) => this.neighborhoods.set(data ?? []),
+      error: (err) => console.error('Error loading neighborhoods', err)
+    });
+  }
+
+  selectNeighborhood(neighborhood: any): void {
+    const current = new Set(this.selectedNeighborhoodIds());
+
+    if (current.has(neighborhood.id)) {
+      current.delete(neighborhood.id);
+    } else {
+      current.add(neighborhood.id);
+    }
+
+    this.selectedNeighborhoodIds.set(current);
+
+    if (current.size === 0) {
+      this.currentPolygon.set(null);
+      return;
+    }
+
+    // Build MultiPolygon GeoJSON from selected neighborhoods
+    const selected = this.neighborhoods().filter(n => current.has(n.id));
+    const allCoordinates: unknown[][] = [];
+
+    selected.forEach(n => {
+      const polygon = n.polygon;
+      if (!polygon) return;
+      if (polygon.type === 'Polygon') {
+        allCoordinates.push(polygon.coordinates);
+      } else if (polygon.type === 'MultiPolygon') {
+        (polygon.coordinates as unknown[][]).forEach((coords: unknown[]) => allCoordinates.push(coords));
+      }
+    });
+
+    if (allCoordinates.length > 0) {
+      this.currentPolygon.set({
+        type: 'MultiPolygon',
+        coordinates: allCoordinates
+      });
+    }
+  }
+
+  applyIsochrone(): void {
+    const lat = this.isochroneOriginLat();
+    const lng = this.isochroneOriginLng();
+    const minutes = this.isochroneMinutes();
+
+    if (lat === null || lng === null) {
+      this.isochroneError.set('Ingresá las coordenadas de origen.');
+      return;
+    }
+
+    this.isochroneError.set(null);
+    this.loading.set(true);
+
+    this.isochroneService.getIsochrone(lat, lng, minutes).subscribe({
+      next: (geometry) => {
+        // Remove previous isochrone layer if any
+        if (this.isochroneLayer) {
+          this.map?.removeLayer(this.isochroneLayer);
+        }
+
+        // Visualize isochrone on map
+        this.isochroneLayer = L.geoJSON({ type: 'Feature', geometry, properties: {} } as any, {
+          style: { color: '#3b82f6', fillOpacity: 0.15, weight: 2 }
+        }).addTo(this.map);
+
+        this.currentPolygon.set(geometry);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.isochroneError.set('Error al obtener la isócrona. Verificá la API key de OpenRouteService.');
+        this.loading.set(false);
+      }
+    });
+  }
+
+  clearPolygon(): void {
+    this.currentPolygon.set(null);
+    this.selectedNeighborhoodIds.set(new Set());
+    this.searchMode.set('radius');
+
+    if (this.drawLayer) {
+      this.map?.removeLayer(this.drawLayer);
+      this.drawLayer = null;
+    }
+
+    if (this.isochroneLayer) {
+      this.map?.removeLayer(this.isochroneLayer);
+      this.isochroneLayer = null;
+    }
+  }
+
   updateMapMarkers(props: PropertyDTO[]): void {
     // Clear old markers
     this.markers.forEach(m => m.remove());
@@ -153,7 +339,6 @@ export class PropertyListComponent implements OnInit {
   }
 
   onFilterChange(): void {
-    // Handled by effects automatically when signals change
     this.page.set(0);
   }
 
@@ -173,7 +358,6 @@ export class PropertyListComponent implements OnInit {
         const { lat, lon, boundingbox } = results[0];
         const centerLat = parseFloat(lat);
         const centerLng = parseFloat(lon);
-        // Calcular radio desde el bounding box
         const latSpan = Math.abs(parseFloat(boundingbox[1]) - parseFloat(boundingbox[0]));
         const lngSpan = Math.abs(parseFloat(boundingbox[3]) - parseFloat(boundingbox[2]));
         const radiusMeters = Math.min(Math.max((Math.max(latSpan, lngSpan) / 2) * 111320, 1000), 50000);

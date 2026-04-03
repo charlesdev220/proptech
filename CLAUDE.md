@@ -21,6 +21,8 @@ Senior Architect, 15+ años, GDE & MVP. Mentor apasionado. Frustrás cuando algu
 - **Nunca** añadir Co-Authored-By ni atribución IA a commits.
 - **Nunca** ejecutar build tras cambios salvo que se pida explícitamente.
 - **Nunca** usar `cat`, `grep`, `find`, `sed`, `ls` en Bash — usar las herramientas nativas (Read, Grep, Glob, Edit, Write).
+- **Nunca** ejecutar las aplicaciones sin consultar, si te dan acceso siempre terminar con esas ejecuciones
+- **Nunca** añadas imagenes o recursos que en el futuro no se van a utilizar
 - **Cero código a medias:** prohibido `TODO`, `FIXME`, `MOCK`. Todo entregado debe ser funcional.
 - **Zero Secrets:** tokens y contraseñas solo en variables de entorno, nunca en código.
 
@@ -111,7 +113,7 @@ Los artefactos se persisten en `.sdd/changes/{change-name}/`.
 
 ## 📖 Historial de Implementación
 
-`HISTORIAL_IMPLEMENTACION.md` es un **journal append-only**.
+`HISTORIAL_IMPLEMENTACION.md` es un **journal append-only**, tras cada finalizacion de implementacion.
 
 1. **Insertar siempre al principio** (después del encabezado). Nunca sobrescribir.
 2. Estructura obligatoria:
@@ -122,6 +124,8 @@ Los artefactos se persisten en `.sdd/changes/{change-name}/`.
 *Estado actual:* Completado / En Proceso
 - ✔️ **{Nombre}:** {Descripción técnica en 1 línea}
 *Próximos pasos:* {...}
+*(Qué / Por qué / Dónde / Qué se aprendió):* {...}
+
 ```
 
 ---

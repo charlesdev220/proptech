@@ -54,6 +54,8 @@ public class PropertyEntity {
     @Column(length = 2)
     private String energyCertificate; // A-G
 
+    private Integer minSolvencyScore;
+
     private LocalDateTime createdAt;
 
     public Point getLocation() {

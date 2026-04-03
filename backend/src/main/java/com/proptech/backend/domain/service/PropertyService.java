@@ -1,12 +1,14 @@
 package com.proptech.backend.domain.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.proptech.backend.api.dto.PropertyCreateDTO;
 import com.proptech.backend.api.dto.PropertyDTO;
+import com.proptech.backend.api.dto.PropertySearchRequest;
 import com.proptech.backend.domain.exception.PropertyNotFoundException;
 import com.proptech.backend.domain.exception.UserNotFoundException;
 import com.proptech.backend.infrastructure.mapper.PropertyMapper;
 import com.proptech.backend.infrastructure.persistence.entity.PropertyEntity;
-import com.proptech.backend.infrastructure.persistence.entity.UserEntity;
 import com.proptech.backend.infrastructure.persistence.repository.PropertyRepository;
 import com.proptech.backend.infrastructure.persistence.repository.UserRepository;
 import com.proptech.backend.api.dto.PropertyDetailDTO;
@@ -15,8 +17,10 @@ import com.proptech.backend.infrastructure.persistence.repository.MediaRepositor
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -31,6 +35,33 @@ public class PropertyService {
     private final UserRepository userRepository;
     private final MediaRepository mediaRepository;
     private final PropertyMapper propertyMapper;
+    private final ObjectMapper objectMapper;
+
+    @Transactional(readOnly = true)
+    public Page<PropertyDTO> searchProperties(PropertySearchRequest request, Pageable pageable) {
+        if (request.getPolygon() != null) {
+            String polygonGeoJson;
+            try {
+                polygonGeoJson = objectMapper.writeValueAsString(request.getPolygon());
+            } catch (JsonProcessingException e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Polygon GeoJSON inválido");
+            }
+            Page<PropertyEntity> page = propertyRepository.searchWithPolygon(
+                polygonGeoJson,
+                request.getMinPrice(),
+                request.getMaxPrice(),
+                request.getMinRooms(),
+                pageable
+            );
+            return buildPageWithThumbnails(page);
+        }
+
+        Double lat = request.getLat() != null ? request.getLat().doubleValue() : null;
+        Double lng = request.getLng() != null ? request.getLng().doubleValue() : null;
+        Double radius = request.getRadius() != null ? request.getRadius().doubleValue() : null;
+
+        return searchProperties(request.getMinPrice(), request.getMaxPrice(), lat, lng, radius, pageable);
+    }
 
     @Transactional(readOnly = true)
     public Page<PropertyDTO> searchProperties(
@@ -40,8 +71,10 @@ public class PropertyService {
 
         Page<PropertyEntity> page = propertyRepository.searchProperties(
                 minPrice, maxPrice, lat, lng, radius, pageable);
+        return buildPageWithThumbnails(page);
+    }
 
-        // Collect all property IDs and fetch their first media in one query
+    private Page<PropertyDTO> buildPageWithThumbnails(Page<PropertyEntity> page) {
         List<UUID> ids = page.getContent().stream()
                 .map(PropertyEntity::getId).toList();
 

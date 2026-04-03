@@ -38,6 +38,7 @@ public interface PropertyMapper {
     @Mapping(target = "features.hasElevator", source = "hasElevator")
     @Mapping(target = "features.hasParking", source = "hasParking")
     @Mapping(target = "features.energyCertificate", source = "energyCertificate")
+    @Mapping(target = "minSolvencyScore", source = "minSolvencyScore")
     com.proptech.backend.api.dto.PropertyDetailDTO toDetailDto(PropertyEntity entity);
 
     @Mapping(target = "location", source = "dto.location", qualifiedByName = "toPoint")
@@ -48,6 +49,7 @@ public interface PropertyMapper {
     @Mapping(target = "hasElevator", source = "dto.features.hasElevator")
     @Mapping(target = "hasParking", source = "dto.features.hasParking")
     @Mapping(target = "energyCertificate", source = "dto.features.energyCertificate")
+    @Mapping(target = "minSolvencyScore", source = "dto.minSolvencyScore")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "owner", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
