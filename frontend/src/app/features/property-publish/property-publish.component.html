@@ -1,0 +1,152 @@
+<div class="max-w-3xl mx-auto px-4 py-8 space-y-6">
+  <div>
+    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Publicar Inmueble</h2>
+    <p class="text-slate-500 text-sm mt-1">Completa todos los campos para publicar tu anuncio.</p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
+
+    <!-- Información básica -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-4">
+      <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest">Información básica</h3>
+
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">Título *</label>
+        <input type="text" formControlName="title" placeholder="Ej: Ático luminoso en Malasaña"
+               class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all">
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-1">Descripción</label>
+        <textarea formControlName="description" rows="3"
+                  placeholder="Describe el inmueble: distribución, estado, puntos fuertes..."
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all resize-none"></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Precio (€) *</label>
+          <input type="number" formControlName="price" placeholder="1200" min="0"
+                 class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Tipo *</label>
+          <select formControlName="type"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white transition-all">
+            <option value="RENT">Alquiler</option>
+            <option value="SALE">Venta</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ubicación -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-4">
+      <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest">Ubicación *</h3>
+
+      <div class="flex gap-2">
+        <input type="text" [value]="addressInput()"
+               (input)="addressInput.set($any($event.target).value)"
+               (keydown.enter)="geocodeAddress($event)"
+               placeholder="Escribe la dirección y pulsa Enter, o haz clic en el mapa..."
+               class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all">
+        <button type="button" (click)="useGeolocation()"
+                title="Usar mi ubicación actual"
+                class="px-4 py-2.5 bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-600 rounded-xl text-sm font-semibold transition-colors flex items-center gap-1.5 whitespace-nowrap">
+          📍 Mi ubicación
+        </button>
+      </div>
+
+      @if (geoError()) {
+        <p class="text-red-500 text-xs bg-red-50 px-3 py-2 rounded-lg">{{ geoError() }}</p>
+      }
+
+      <div class="h-72 rounded-xl overflow-hidden border border-slate-200 z-0"
+           leaflet
+           [leafletOptions]="mapOptions"
+           (leafletMapReady)="onMapReady($event)">
+      </div>
+
+      @if (selectedLat() !== null) {
+        <p class="text-xs text-slate-400 font-mono bg-slate-50 px-3 py-1.5 rounded-lg">
+          📌 {{ selectedLat()!.toFixed(6) }}, {{ selectedLng()!.toFixed(6) }}
+        </p>
+      } @else {
+        <p class="text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg">
+          Haz clic en el mapa o usa "Mi ubicación" para marcar la dirección.
+        </p>
+      }
+    </div>
+
+    <!-- Características -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-4">
+      <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest">Características</h3>
+
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Habitaciones</label>
+          <input type="number" formControlName="rooms" min="0" max="20" placeholder="2"
+                 class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Baños</label>
+          <input type="number" formControlName="bathrooms" min="0" max="10" placeholder="1"
+                 class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Superficie (m²)</label>
+          <input type="number" formControlName="surface" min="0" placeholder="85"
+                 class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-4 items-end">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Certif. Energético</label>
+          <select formControlName="energyCertificate"
+                  class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white transition-all">
+            <option value="">Sin especificar</option>
+            @for (cert of energyCerts; track cert) {
+              <option [value]="cert">{{ cert }}</option>
+            }
+          </select>
+        </div>
+        <label class="flex items-center gap-3 cursor-pointer pb-0.5">
+          <input type="checkbox" formControlName="hasElevator" class="w-4 h-4 accent-blue-600">
+          <span class="text-sm font-semibold text-slate-700">Ascensor</span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer pb-0.5">
+          <input type="checkbox" formControlName="hasParking" class="w-4 h-4 accent-blue-600">
+          <span class="text-sm font-semibold text-slate-700">Parking</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Imágenes y Vídeo -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-3">
+      <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest">Imágenes / Vídeo</h3>
+      <input type="file" multiple (change)="onFileSelected($event)" accept="image/*,video/mp4"
+             class="block w-full text-sm text-slate-600
+                    file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0
+                    file:bg-blue-50 file:text-blue-700 file:font-semibold
+                    hover:file:bg-blue-100 transition-all">
+      <p class="text-xs text-slate-400">Máx. 5 archivos · Imágenes comprimidas automáticamente (HD 70%) · Vídeos &lt; 15 MB</p>
+      @if (errorMessage()) {
+        <p class="text-red-500 text-xs bg-red-50 px-3 py-2 rounded-lg">{{ errorMessage() }}</p>
+      }
+      @if (selectedFiles().length > 0) {
+        <p class="text-xs text-green-600 font-medium">{{ selectedFiles().length }} archivo(s) seleccionado(s)</p>
+      }
+    </div>
+
+    <!-- Submit -->
+    <button type="submit"
+            [disabled]="form.invalid || isUploading() || selectedLat() === null"
+            class="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold text-sm
+                   hover:bg-blue-700 disabled:opacity-50 transition-all
+                   active:scale-[0.99] shadow-lg shadow-blue-200">
+      {{ isUploading() ? 'Publicando...' : 'Publicar Inmueble' }}
+    </button>
+
+  </form>
+</div>

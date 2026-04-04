@@ -27,6 +27,15 @@ public class ProfileService {
         dto.setName(user.getName());
         dto.setTrustScore(user.getTrustScore());
         dto.setIsVerified(user.getIsVerified());
+        dto.setSolvencyScore(user.getSolvencyScore());
+        if (user.getSolvencyVerifiedAt() != null) {
+            dto.setSolvencyVerifiedAt(
+                user.getSolvencyVerifiedAt().atOffset(java.time.ZoneOffset.UTC));
+        }
+        if (user.getSolvencyContractType() != null) {
+            dto.setSolvencyContractType(
+                UserProfileDTO.SolvencyContractTypeEnum.fromValue(user.getSolvencyContractType()));
+        }
         
         return dto;
     }

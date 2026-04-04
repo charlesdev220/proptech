@@ -20,11 +20,19 @@ export interface PropertyDetailDTO {
     price?: number;
     type?: PropertyDetailDTO.TypeEnum;
     location?: PropertyDTOLocation;
+    /**
+     * URL de la primera imagen de la propiedad (thumbnail para listados)
+     */
+    thumbnailUrl?: string;
     createdAt?: string;
     owner?: UserProfileDTO;
     fullAddress?: string;
     features?: PropertyDetailDTOAllOfFeatures;
     mediaPreviews?: Array<MediaDTO>;
+    /**
+     * Score mínimo de solvencia requerido por el propietario
+     */
+    minSolvencyScore?: number;
 }
 export namespace PropertyDetailDTO {
     export const TypeEnum = {

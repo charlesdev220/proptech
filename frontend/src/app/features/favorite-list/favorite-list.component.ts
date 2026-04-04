@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FavoritesService } from '../../core/favorites/favorites.service';
@@ -9,87 +9,9 @@ import { PropertyDTO } from '../../../api/model/propertyDTO';
   selector: 'app-favorite-list',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  template: `
-    <div class="min-h-screen bg-slate-50">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <!-- Header -->
-        <div class="mb-8">
-          <h1 class="text-3xl font-black text-slate-900 tracking-tight">Mis Favoritos</h1>
-          <p class="text-sm text-slate-500 mt-1">Inmuebles que has guardado para revisar despues</p>
-        </div>
-
-        <!-- Loading -->
-        @if (loading()) {
-          <div class="flex items-center justify-center h-64">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        }
-
-        <!-- Empty State -->
-        @if (!loading() && favorites().length === 0) {
-          <div class="flex flex-col items-center justify-center h-64 bg-white rounded-2xl border border-slate-100 shadow-sm">
-            <span class="text-5xl mb-4">&#9825;</span>
-            <h3 class="text-lg font-bold text-slate-700 mb-1">No tenes inmuebles guardados</h3>
-            <p class="text-sm text-slate-400 mb-6">Explora propiedades y agrega las que te interesen</p>
-            <a routerLink="/search"
-               class="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors">
-              Explorar propiedades
-            </a>
-          </div>
-        }
-
-        <!-- Favorites Grid -->
-        @if (!loading() && favorites().length > 0) {
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @for (prop of favorites(); track prop.id) {
-              <div class="group bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer relative">
-                <!-- Remove button -->
-                <button (click)="removeFavorite($event, prop.id!)"
-                  class="absolute top-3 right-3 z-10 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-red-500 hover:bg-red-50 hover:text-red-600 transition-all shadow-md">
-                  <span class="text-lg">&#10005;</span>
-                </button>
-
-                <div [routerLink]="['/property', prop.id]" class="block">
-                  <div class="h-48 bg-slate-200 relative overflow-hidden">
-                    @if (prop.thumbnailUrl) {
-                      <img [src]="prop.thumbnailUrl"
-                           class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                           [alt]="prop.title"
-                           loading="lazy">
-                    } @else {
-                      <div class="w-full h-full bg-gradient-to-br from-slate-300 to-slate-400 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
-                        <span class="text-4xl">&#127968;</span>
-                      </div>
-                    }
-                    <div class="absolute top-3 left-3 bg-white/90 backdrop-blur px-2.5 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
-                      {{ prop.type }}
-                    </div>
-                    <div class="absolute bottom-3 right-3 bg-blue-600 text-white px-3 py-1 rounded-lg font-bold text-sm shadow-lg">
-                      {{ prop.price | currency:'EUR':'symbol':'1.0-2' }}
-                    </div>
-                  </div>
-                  <div class="p-4">
-                    <h3 class="font-bold text-slate-800 line-clamp-1 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{{ prop.title }}</h3>
-                    <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                      <span class="opacity-70">&#128205;</span> {{ prop.location?.address || 'Ubicacion no especificada' }}
-                    </p>
-                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-end">
-                      <span class="text-xs font-bold text-slate-800 flex items-center gap-1 group-hover:text-blue-600 transition-colors">
-                        VER MAS <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-        }
-      </div>
-    </div>
-  `,
-  styles: [`
-    :host { display: block; }
-  `]
+  templateUrl: './favorite-list.component.html',
+  styleUrls: ['./favorite-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FavoriteListComponent implements OnInit {
   private favoritesService = inject(FavoritesService);

@@ -23,6 +23,7 @@ El `verify-report.md` debe existir y no tener issues CRITICAL.
 - ✔️ **{Nombre}:** {Descripción técnica en 1 línea}
 - ✔️ **{Nombre}:** {Descripción técnica en 1 línea}
 *Próximos pasos:* {siguiente tarea del plan o fase}
+*(Qué / Por qué / Dónde / Qué se aprendió):* {...}
 ```
 
 ## Reglas

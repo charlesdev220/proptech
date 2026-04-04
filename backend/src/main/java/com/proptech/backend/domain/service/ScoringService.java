@@ -28,7 +28,18 @@ public class ScoringService {
             factors.add(new ScoringFactor("Email no verificado", 0, "Valida tu correo para ganar +20 puntos."));
         }
 
-        // Factor 2: TrustScore base del usuario (se puede heredar de verificaciones externas en el futuro)
+        // Factor 2: SolvencyScore verificado (peso 60%)
+        if (user.getSolvencyScore() != null) {
+            int pts = (int) (user.getSolvencyScore() * 0.6);
+            total += pts;
+            factors.add(new ScoringFactor("Solvencia Verificada", pts,
+                "Tu SolvencyScore verificado aporta hasta 60 pts al TrustScore."));
+        } else {
+            factors.add(new ScoringFactor("Solvencia no verificada", 0,
+                "Verificá tu solvencia en el dashboard para ganar hasta 60 pts."));
+        }
+
+        // Factor 3: TrustScore base del usuario (historial previo)
         if (user.getTrustScore() != null && user.getTrustScore() > 0) {
            factors.add(new ScoringFactor("Historial de Usuario", user.getTrustScore(), "Puntos acumulados por antigüedad o actividad."));
            total += user.getTrustScore();

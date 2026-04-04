@@ -38,6 +38,12 @@ public class UserEntity implements UserDetails {
     @Builder.Default
     private Integer trustScore = 0;
 
+    private Integer solvencyScore;
+
+    private LocalDateTime solvencyVerifiedAt;
+
+    private String solvencyContractType;
+
     private LocalDateTime createdAt;
     
     @PrePersist

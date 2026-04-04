@@ -19,6 +19,10 @@ export interface PropertyCreateDTO {
     location: PropertyDTOLocation;
     mediaIds?: Array<string>;
     features?: PropertyCreateDTOFeatures;
+    /**
+     * Score mínimo de solvencia requerido para el inquilino (opcional)
+     */
+    minSolvencyScore?: number;
 }
 export namespace PropertyCreateDTO {
     export const TypeEnum = {

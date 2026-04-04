@@ -15,5 +15,17 @@ export interface UserProfileDTO {
     name?: string;
     trustScore?: number;
     isVerified?: boolean;
+    solvencyScore?: number | null;
+    solvencyVerifiedAt?: string | null;
+    solvencyContractType?: UserProfileDTO.SolvencyContractTypeEnum | null;
 }
+export namespace UserProfileDTO {
+    export const SolvencyContractTypeEnum = {
+        Indefinido: 'INDEFINIDO',
+        Temporal: 'TEMPORAL',
+        Obra: 'OBRA'
+    } as const;
+    export type SolvencyContractTypeEnum = typeof SolvencyContractTypeEnum[keyof typeof SolvencyContractTypeEnum];
+}
+
 

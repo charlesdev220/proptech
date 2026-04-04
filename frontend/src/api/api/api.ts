@@ -1,9 +1,17 @@
+export * from './alertas.service';
+import { AlertasService } from './alertas.service';
 export * from './autenticacin.service';
 import { AutenticacinService } from './autenticacin.service';
+export * from './barrios.service';
+import { BarriosService } from './barrios.service';
 export * from './inmuebles.service';
 import { InmueblesService } from './inmuebles.service';
 export * from './medios.service';
 import { MediosService } from './medios.service';
 export * from './perfil.service';
 import { PerfilService } from './perfil.service';
-export const APIS = [AutenticacinService, InmueblesService, MediosService, PerfilService];
+export * from './reseas.service';
+import { ReseasService } from './reseas.service';
+export * from './usuarios.service';
+import { UsuariosService } from './usuarios.service';
+export const APIS = [AlertasService, AutenticacinService, BarriosService, InmueblesService, MediosService, PerfilService, ReseasService, UsuariosService];

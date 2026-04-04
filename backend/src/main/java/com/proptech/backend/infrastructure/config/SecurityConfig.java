@@ -41,6 +41,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/profile/**").authenticated()
                 .requestMatchers("/api/v1/favorites/**").authenticated()
                 .requestMatchers("/api/v1/saved-searches/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/v1/users/*/reputation").permitAll()
+                .requestMatchers("/api/v1/reviews/**").authenticated()
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

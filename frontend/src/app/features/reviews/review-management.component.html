@@ -1,0 +1,116 @@
+<div class="min-h-screen bg-slate-50 p-6">
+  <div class="max-w-4xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+      <div>
+        <h1 class="text-3xl font-black text-slate-800 tracking-tight">Mis Reseñas Recibidas</h1>
+        <p class="text-slate-500 font-medium">Tu reputación en la plataforma, construida por la comunidad.</p>
+      </div>
+      <a routerLink="/profile" class="px-5 py-3 bg-slate-100 text-slate-700 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-colors">
+        ← Volver al perfil
+      </a>
+    </div>
+
+    @if (loading()) {
+      <div class="flex justify-center py-12">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    } @else {
+
+      <!-- Badge de Reputación -->
+      @if (reputationScore()) {
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm mb-6 flex items-center gap-6">
+          <div class="text-5xl font-black"
+               [class]="reputationScore()!.level === 'SIN_HISTORIAL' ? 'text-slate-300' : 'text-slate-800'">
+            {{ reputationScore()!.level === 'SIN_HISTORIAL' ? '—' : reputationScore()!.score }}
+          </div>
+          <div>
+            <p class="font-black text-xl text-slate-800">{{ reputationScore()!.level }}</p>
+            <p class="text-slate-500 text-sm">
+              {{ reputationScore()!.reviewCount }} valoraciones totales ·
+              {{ reputationScore()!.contractReviewCount }} de contrato
+            </p>
+            @if (reputationScore()!.level === 'SIN_HISTORIAL') {
+              <p class="text-slate-400 text-xs mt-1">
+                Sin historial aún — completá visitas y contratos para construir tu reputación.
+              </p>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Lista de Reviews -->
+      @if (!reputationScore()?.reviews?.length) {
+        <div class="bg-white rounded-3xl p-12 text-center border border-slate-100 shadow-sm">
+          <div class="text-6xl mb-4">⭐</div>
+          <h2 class="text-xl font-bold text-slate-800">Todavía no tenés reseñas visibles</h2>
+          <p class="text-slate-500 mt-2">Las reseñas se revelan cuando ambas partes hayan valorado o el plazo expire.</p>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 gap-4">
+          @for (review of reputationScore()!.reviews; track review.id) {
+            <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm"
+                 [class.border-l-4]="true"
+                 [class.border-l-yellow-400]="!review.disputed"
+                 [class.border-l-red-300]="review.disputed">
+
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-grow">
+                  <div class="flex items-center gap-3 mb-3">
+                    <span [class]="review.eventType === 'CONTRACT' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-blue-50 text-blue-700 border-blue-100'"
+                          class="px-2 py-0.5 text-[10px] font-black uppercase rounded-full border">
+                      {{ review.eventType === 'CONTRACT' ? 'Contrato' : 'Visita' }}
+                    </span>
+                    @if (review.disputed) {
+                      <span class="px-2 py-0.5 bg-red-50 text-red-500 text-[10px] font-black uppercase rounded-full border border-red-100">Disputada</span>
+                    }
+                    <span class="text-xs text-slate-400">{{ review.createdAt | date:'dd/MM/yyyy' }}</span>
+                  </div>
+
+                  <!-- Dimensiones -->
+                  <div class="flex flex-wrap gap-3">
+                    @for (entry of getDimensionEntries(review); track entry.key) {
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-xs text-slate-500 capitalize">{{ entry.key.replace('_', ' ') }}</span>
+                        <div class="flex gap-0.5">
+                          @for (star of [1,2,3,4,5]; track star) {
+                            <span [class]="entry.value >= star ? 'text-yellow-400' : 'text-slate-200'"
+                                  class="text-sm">★</span>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Disputar -->
+                @if (!review.disputed) {
+                  <div class="relative shrink-0">
+                    @if (confirmingDisputeId() === review.id) {
+                      <div class="flex items-center gap-1 bg-white p-1 rounded-xl shadow-xl border border-red-100 z-10">
+                        <button (click)="dispute(review.id!)" class="px-3 py-1.5 bg-red-600 text-white text-[10px] font-black rounded-lg uppercase">Disputar</button>
+                        <button (click)="confirmingDisputeId.set(null)" class="p-1.5 text-slate-400 hover:text-slate-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                        </button>
+                      </div>
+                    } @else {
+                      <button (click)="confirmingDisputeId.set(review.id!)"
+                              class="p-2 text-slate-300 hover:text-red-400 transition-colors rounded-xl hover:bg-red-50"
+                              title="Disputar reseña">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+  </div>
+</div>

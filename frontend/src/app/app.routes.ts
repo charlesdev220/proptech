@@ -29,5 +29,17 @@ export const routes: Routes = [
   {
     path: 'profile',
     loadComponent: () => import('./features/user-dashboard/user-dashboard').then(m => m.UserProfileComponent)
+  },
+  {
+    path: 'saved-searches',
+    loadComponent: () => import('./features/saved-searches/saved-search-list.component').then(m => m.SavedSearchListComponent)
+  },
+  {
+    path: 'reviews/token/:token',
+    loadComponent: () => import('./features/reviews/review-form.component').then(m => m.ReviewFormComponent)
+  },
+  {
+    path: 'my-reviews',
+    loadComponent: () => import('./features/reviews/review-management.component').then(m => m.ReviewManagementComponent)
   }
 ];

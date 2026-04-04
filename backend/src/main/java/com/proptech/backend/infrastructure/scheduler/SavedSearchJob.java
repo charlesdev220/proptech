@@ -36,6 +36,13 @@ public class SavedSearchJob {
 
         for (SavedSearchEntity search : activeSearches) {
             try {
+                if (search.getFilters() == null || search.getFilters().isBlank()) {
+                    log.warn("SavedSearchJob: búsqueda {} sin filtros, marcando como revisada para evitar reevaluación infinita.", search.getId());
+                    search.setLastCheckedAt(LocalDateTime.now());
+                    savedSearchRepository.save(search);
+                    continue;
+                }
+
                 PropertySearchRequest filters = objectMapper.readValue(search.getFilters(), PropertySearchRequest.class);
 
                 LocalDateTime since = search.getLastCheckedAt() != null
@@ -69,6 +76,8 @@ public class SavedSearchJob {
 
             } catch (Exception e) {
                 log.warn("Error evaluando búsqueda guardada {}: {}", search.getId(), e.getMessage());
+                search.setLastCheckedAt(LocalDateTime.now());
+                savedSearchRepository.save(search);
             }
         }
     }

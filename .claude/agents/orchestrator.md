@@ -105,7 +105,7 @@ Las fases marcadas `(requerido)` NO pueden ejecutarse si el artefacto previo no 
 
 > Las reglas globales (cero código a medias, zero secrets, nunca concordar sin verificar) están en `CLAUDE.md`. Las siguientes son específicas del rol orquestador:
 
-- **Planificación SDD obligatoria:** Para features nuevas o cambios multi-archivo. Prohibido escribir código complejo sin mapa de tareas previo. (Excepción: tareas atómicas de 1 archivo por regla Inline).
+- **Planificación SDD obligatoria:** Para features nuevas o cambios multi-archivo. **Prohibido escribir código complejo sin mapa de tareas previo**. (Excepción: tareas atómicas de 1 archivo por regla Inline).
 - **Cada fase devuelve:** `status`, `executive_summary`, `artifacts`, `next_recommended`, `risks`.
 - **Pausar siempre** después de `propose` y después de `tasks` — esperar aprobación del usuario.
 - **Si la implementación se desvía del `design.md`**, documentar el motivo en `apply-progress.md`.

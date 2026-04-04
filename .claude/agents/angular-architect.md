@@ -25,7 +25,7 @@ frontend/src/app/
 ├── core/
 │   ├── auth/           ← AuthService, authInterceptor
 │   └── api/            ← GENERADO — no modificar manualmente
-├── shared/             ← Dumb components reutilizables
+├── shared/             ← Dumb components reutilizables **IMPORTANTE**
 └── features/
     ├── property-list/
     ├── property-detail/
@@ -37,6 +37,90 @@ frontend/src/app/
 ## Reglas Aplicadas (No Negociables)
 
 ### Componentes
+
+#### Estructura de ficheros — OBLIGATORIA
+
+Cada componente se genera siempre con sus **cuatro ficheros separados**. Prohibido usar `template` o `styles` inline en el decorador `@Component`.
+
+```
+feature-name/
+├── feature-name.component.ts       ← lógica + decorador (solo templateUrl/styleUrls)
+├── feature-name.component.html     ← template completo
+├── feature-name.component.scss     ← estilos del componente
+└── feature-name.component.spec.ts  ← tests unitarios
+```
+
+**Por qué:** Los ficheros separados permiten:
+- Navegación directa (el IDE lleva al HTML sin abrir el `.ts`)
+- Revisión de código más legible (diffs de template aislados)
+- Modificaciones de estilos sin tocar la lógica
+- Coautoría y PR reviews más claros
+
+```typescript
+// ✅ CORRECTO — ficheros separados
+@Component({
+  selector: 'app-property-card',
+  standalone: true,
+  templateUrl: './property-card.component.html',   // ← fichero externo
+  styleUrls: ['./property-card.component.scss'],   // ← fichero externo
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class PropertyCardComponent { }
+
+// ❌ PROHIBIDO — template/styles inline
+@Component({
+  selector: 'app-property-card',
+  standalone: true,
+  template: `<div>...</div>`,          // ← nunca inline
+  styles: [`:host { display: block }`], // ← nunca inline
+})
+export class PropertyCardComponent { }
+```
+
+
+### Camino a Angular 17+ (enseñar como "siguiente nivel")
+
+Cuando el estudiante tenga la versión básica funcionando, muéstrale la evolución:
+
+```typescript
+// 🚀 Angular 17+: Standalone + inject() + Signals
+@Component({
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, RouterLinkActive, NgClass],
+})
+export class TaskListComponent {
+  private taskService = inject(TaskService);           // inject() en lugar de constructor
+
+  tasks = signal<Task[]>([]);                          // Estado local reactivo
+  currentFilter = signal<'all' | 'pending' | 'completed'>('all');
+
+  pendingCount = computed(() =>                        // Derivado automático
+    this.tasks().filter(t => !t.completed).length
+  );
+
+  filteredTasks = computed(() => {                     // Filtrado reactivo
+    const filter = this.currentFilter();
+    return filter === 'all' ? this.tasks()
+      : this.tasks().filter(t => t.completed === (filter === 'completed'));
+  });
+}
+```
+
+```html
+<!-- 🚀 Angular 17+: Control Flow nativo (sin *ngFor / *ngIf) -->
+@for (task of filteredTasks(); track task.id) {
+  <li [class.completed]="task.completed">...</li>
+} @empty {
+  <li>No hay tareas aún</li>
+}
+
+@if (pendingCount() > 0) {
+  <span>{{ pendingCount() }} items left</span>
+}
+```
+
+#### Otras reglas de componentes
 - `standalone: true` siempre.
 - `ChangeDetectionStrategy.OnPush` en todos los componentes nuevos.
 - `inject()` function — nunca constructor injection.

@@ -1,0 +1,222 @@
+<div class="min-h-screen bg-slate-50 p-6">
+  <div class="max-w-4xl mx-auto space-y-8">
+
+    <!-- Header / Perfil -->
+    <header class="bg-white rounded-3xl p-8 shadow-sm flex flex-col md:flex-row items-center gap-8 border border-white">
+      <div class="w-32 h-32 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-bold shadow-xl shadow-blue-100">
+        {{ profile()?.name?.charAt(0) || 'U' }}
+      </div>
+      <div class="flex-grow text-center md:text-left">
+        <div class="flex items-center justify-center md:justify-start gap-3 mb-1">
+          <h1 class="text-3xl font-black text-slate-800">{{ profile()?.name }}</h1>
+          @if (profile()?.isVerified) {
+            <span class="text-blue-500" title="Verificado">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+            </span>
+          }
+        </div>
+        <p class="text-slate-500 font-medium">{{ profile()?.email }}</p>
+        <div class="mt-4 flex flex-wrap gap-2 justify-center md:justify-start">
+          <span [class]="profile()?.isVerified ? 'bg-green-50 text-green-600 border-green-100' : 'bg-slate-100 text-slate-400 border-slate-200'"
+                class="px-3 py-1 text-xs font-bold rounded-full border uppercase tracking-tighter">
+            {{ profile()?.isVerified ? 'Email Verificado' : 'Email Pendiente' }}
+          </span>
+          <span class="px-3 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-full border border-blue-100 uppercase tracking-tighter">Cuenta Standard</span>
+        </div>
+      </div>
+
+      <!-- Badge de Reputación (Trust Score) -->
+      <div class="shrink-0">
+        <div [class]="reputationClass().container" class="rounded-2xl p-6 text-center shadow-2xl relative overflow-hidden transition-all hover:scale-105">
+          <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+          <p class="text-[10px] uppercase font-black tracking-[0.2em] opacity-80 mb-1">Reputación Nivel</p>
+          <h2 class="text-2xl font-black">{{ score()?.level || 'RECALCULANDO...' }}</h2>
+          <div class="mt-3 bg-white/20 rounded-full h-1.5 w-32 mx-auto">
+            <div [class]="reputationClass().progress" class="h-full rounded-full transition-all duration-1000" [style.width.%]="(score()?.totalScore || 0) / 10"></div>
+          </div>
+          <p class="text-[10px] mt-2 font-bold opacity-90">{{ score()?.totalScore || 0 }} pts</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Secciones del Dashboard -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+      <section class="md:col-span-2 space-y-8">
+        <!-- Profile Completeness -->
+        <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm overflow-hidden relative">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50"></div>
+          <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+            Estado del Perfil
+          </h3>
+
+          <div class="flex items-center gap-6 mb-8">
+            <div class="relative w-24 h-24 shrink-0">
+               <svg class="w-full h-full transform -rotate-90">
+                 <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-100"/>
+                 <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent"
+                         class="text-blue-600 transition-all duration-1000"
+                         [style.stroke-dasharray]="251.2"
+                         [style.stroke-dashoffset]="251.2 * (1 - profileCompleteness().percentage / 100)"/>
+               </svg>
+               <div class="absolute inset-0 flex items-center justify-center text-xl font-black text-slate-800">
+                 {{ profileCompleteness().percentage }}%
+               </div>
+            </div>
+            <div>
+               <h4 class="font-bold text-slate-800">Tu reputación empieza aquí</h4>
+               <p class="text-sm text-slate-500 max-w-md">Completá los pasos siguientes para acceder a mejores inmuebles y reducir tus depósitos de fianza.</p>
+            </div>
+          </div>
+
+          @if (profileCompleteness().pendingSteps.length > 0) {
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              @for (step of profileCompleteness().pendingSteps; track step.label) {
+                <div class="flex items-center justify-between p-3 rounded-2xl bg-blue-50 border border-blue-100 group transition-all hover:bg-blue-600">
+                  <span class="text-xs font-bold text-blue-700 group-hover:text-white transition-colors">{{ step.label }}</span>
+                  <span class="text-blue-400 group-hover:text-white transition-transform group-hover:translate-x-1">→</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="p-4 rounded-2xl bg-green-50 border border-green-100 flex items-center gap-3">
+              <span class="text-xl">🏆</span>
+              <div>
+                <p class="text-sm font-bold text-green-800">¡Perfil completado al máximo!</p>
+                <p class="text-xs text-green-600">Tu perfil tiene la máxima visibilidad para los propietarios.</p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Factores de Confianza -->
+        <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+          <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.040L3 14.535a9.233 9.233 0 004.873 14.535 9.233 9.233 0 004.873-14.535l-.127-8.591z" />
+            </svg>
+            Factores de Confianza
+          </h3>
+
+          <div class="space-y-4">
+            @for (factor of score()?.factors; track factor.name) {
+              <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 transition-colors hover:bg-slate-100">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-blue-600 shadow-sm font-bold">
+                    {{ factor.points }}
+                  </div>
+                  <div>
+                    <p class="text-sm font-bold text-slate-700 capitalize">{{ factor.name }}</p>
+                    <p class="text-xs text-slate-500">Contribuye positivamente a tu perfil</p>
+                  </div>
+                </div>
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              </div>
+            } @empty {
+              <div class="text-center py-8">
+                <p class="text-slate-400 font-medium italic">Calculando factores...</p>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- Sidebar: Solvencia + Reputación -->
+      <aside class="space-y-6">
+
+        <!-- Panel Verificación de Solvencia -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 text-white shadow-xl">
+          <h3 class="font-black text-lg mb-2 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04L3 14.535a9.233 9.233 0 004.873 14.535 9.233 9.233 0 004.873-14.535z" />
+            </svg>
+            Solvencia Verificada
+          </h3>
+
+          @if (solvencyStatus() === 'success' || profile()?.solvencyScore != null) {
+            <div class="mt-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-300 text-sm">Score de Solvencia</span>
+                <span class="text-2xl font-black text-white">{{ solvencyResult()?.score ?? profile()?.solvencyScore }} pts</span>
+              </div>
+              <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+                <div class="h-full bg-blue-400 rounded-full transition-all duration-1000"
+                     [style.width.%]="solvencyResult()?.score ?? profile()?.solvencyScore"></div>
+              </div>
+              <div class="flex flex-wrap gap-2 mt-4">
+                @for (check of solvencyResult()?.checks; track check.name) {
+                  <span [class]="check.passed ? 'bg-green-900/50 text-green-300 border-green-700' : 'bg-yellow-900/50 text-yellow-300 border-yellow-700'"
+                        class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold border">
+                    {{ check.passed ? '✅' : '⚠️' }} {{ check.name }}
+                  </span>
+                }
+              </div>
+              <p class="text-slate-500 text-[10px] mt-2">Tipo de contrato: {{ solvencyResult()?.contractType ?? profile()?.solvencyContractType ?? '—' }}</p>
+            </div>
+          } @else if (solvencyStatus() === 'loading') {
+            <div class="flex flex-col items-center py-8 gap-3">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+              <p class="text-slate-400 text-sm">Analizando documentos...</p>
+            </div>
+          } @else {
+            <p class="text-slate-400 text-sm leading-relaxed mt-2 mb-4">
+              Subí 3 nóminas + 1 contrato de trabajo para obtener tu <span class="text-blue-400 font-bold">SolvencyScore</span>.
+              <span class="block mt-1 text-green-400 font-bold text-xs">🔒 Ningún documento es almacenado en nuestros servidores.</span>
+            </p>
+
+            @if (solvencyStatus() === 'error') {
+              <p class="text-red-400 text-xs font-bold mb-3">Error al procesar. Intentá de nuevo.</p>
+            }
+
+            <label class="flex flex-col items-center justify-center border-2 border-dashed border-slate-600 rounded-2xl p-6 cursor-pointer hover:border-blue-500 transition-colors">
+              <input type="file" accept="application/pdf" multiple class="hidden" (change)="onFileSelected($event)">
+              @if (selectedFiles().length === 0) {
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-slate-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <p class="text-sm font-bold text-slate-400">Haz clic o arrastrá los PDFs</p>
+                <p class="text-xs text-slate-500 mt-1">Hasta 4 archivos PDF (max 5MB c/u)</p>
+              } @else {
+                <p class="text-sm font-bold text-blue-300">{{ selectedFiles().length }} archivo(s) seleccionado(s)</p>
+              }
+            </label>
+
+            <button (click)="submitSolvencyVerification()"
+                    [disabled]="selectedFiles().length === 0"
+                    class="w-full mt-4 py-3 bg-white text-slate-900 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              Verificar Solvencia
+            </button>
+          }
+        </div>
+
+        <!-- Panel Reputación -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+          <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            Mi Reputación
+          </h3>
+
+          @if (reputationScore()?.level === 'SIN_HISTORIAL' || reputationScore() === null) {
+            <div class="text-center py-4">
+              <p class="text-slate-500 text-sm">Todavía no tenés valoraciones recibidas.</p>
+              <a routerLink="/my-reviews" class="mt-3 inline-block text-blue-600 text-sm font-bold hover:underline">Ver mis reseñas →</a>
+            </div>
+          } @else {
+            <div class="flex items-center gap-4">
+              <div class="text-4xl font-black text-slate-800">{{ reputationScore()?.score }}</div>
+              <div>
+                <p class="font-bold text-slate-700">{{ reputationScore()?.level }}</p>
+                <p class="text-xs text-slate-400">{{ reputationScore()?.reviewCount }} valoraciones recibidas</p>
+                <a routerLink="/my-reviews" class="text-blue-600 text-xs font-bold hover:underline">Ver todas →</a>
+              </div>
+            </div>
+          }
+        </div>
+
+      </aside>
+
+    </div>
+  </div>
+</div>

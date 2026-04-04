@@ -462,6 +462,211 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /profile/solvency-verification:
+    post:
+      summary: Verificar solvencia subiendo hasta 4 documentos PDF (3 nóminas + 1 contrato). Procesado en memoria — ningún documento es almacenado.
+      tags:
+        - Perfil
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Verificación procesada. Score calculado y persistido en el perfil.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolvencyResultDTO'
+        '400':
+          description: Archivo inválido (tipo no permitido o supera 5MB)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: No autorizado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /reviews/tokens:
+    post:
+      summary: Crear un token de valoración (vinculado a un evento de visita o contrato)
+      tags:
+        - Reseñas
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewTokenCreateRequest'
+      responses:
+        '201':
+          description: Token de valoración creado y email de invitación enviado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewTokenDTO'
+        '401':
+          description: No autorizado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /reviews/token/{token}:
+    get:
+      summary: Obtener información de un token de valoración para pre-poblar el formulario
+      tags:
+        - Reseñas
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Información del token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewTokenInfoDTO'
+        '403':
+          description: Token no pertenece al usuario autenticado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Token no encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /reviews:
+    post:
+      summary: Enviar una valoración usando un token de un solo uso
+      tags:
+        - Reseñas
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreateRequest'
+      responses:
+        '201':
+          description: Valoración registrada. No visible hasta el reveal.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDTO'
+        '400':
+          description: Dimensiones inválidas (valor fuera de rango o dimensiones incorrectas para el tipo)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Token no pertenece al usuario autenticado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Token ya utilizado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '410':
+          description: Token expirado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /reviews/{id}/dispute:
+    patch:
+      summary: Marcar una reseña recibida como disputada
+      tags:
+        - Reseñas
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Reseña marcada como disputada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDTO'
+        '403':
+          description: La reseña no pertenece al usuario autenticado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Reseña no encontrada o aún no visible
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /users/{id}/reputation:
+    get:
+      summary: Obtener el ReputationScore y reseñas visibles de un usuario
+      tags:
+        - Usuarios
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Reputación del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReputationScoreDTO'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /profile/documents:
     post:
       summary: Subir un documento (DNI, Nómina) para verificación (KYC)
@@ -711,6 +916,19 @@ components:
           type: integer
         isVerified:
           type: boolean
+        solvencyScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+          nullable: true
+        solvencyVerifiedAt:
+          type: string
+          format: date-time
+          nullable: true
+        solvencyContractType:
+          type: string
+          enum: [INDEFINIDO, TEMPORAL, OBRA]
+          nullable: true
 
     TrustScoreDTO:
       type: object
@@ -814,3 +1032,158 @@ components:
           maxLength: 100
         filters:
           $ref: '#/components/schemas/PropertySearchRequest'
+
+    SolvencyCheckDTO:
+      type: object
+      properties:
+        name:
+          type: string
+        passed:
+          type: boolean
+        description:
+          type: string
+
+    SolvencyResultDTO:
+      type: object
+      properties:
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        level:
+          type: string
+          enum: [BRONZE, SILVER, GOLD, PLATINUM]
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SolvencyCheckDTO'
+        verifiedAt:
+          type: string
+          format: date-time
+        contractType:
+          type: string
+          enum: [INDEFINIDO, TEMPORAL, OBRA]
+          nullable: true
+        documentosCompletos:
+          type: boolean
+
+    ReviewTokenCreateRequest:
+      type: object
+      required:
+        - eventType
+        - fromUserId
+        - toUserId
+        - propertyId
+      properties:
+        eventType:
+          type: string
+          enum: [VISIT, CONTRACT]
+        fromUserId:
+          type: string
+          format: uuid
+        toUserId:
+          type: string
+          format: uuid
+        propertyId:
+          type: string
+          format: uuid
+
+    ReviewTokenDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        token:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum: [VISIT, CONTRACT]
+        weight:
+          type: number
+          format: double
+        expiresAt:
+          type: string
+          format: date-time
+        usedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    ReviewTokenInfoDTO:
+      type: object
+      properties:
+        eventType:
+          type: string
+          enum: [VISIT, CONTRACT]
+        toUserName:
+          type: string
+        propertyId:
+          type: string
+          format: uuid
+        expiresAt:
+          type: string
+          format: date-time
+        expectedDimensions:
+          type: array
+          items:
+            type: string
+
+    ReviewCreateRequest:
+      type: object
+      required:
+        - token
+        - dimensions
+      properties:
+        token:
+          type: string
+          format: uuid
+        dimensions:
+          type: object
+          additionalProperties:
+            type: integer
+            minimum: 1
+            maximum: 5
+
+    ReviewDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum: [VISIT, CONTRACT]
+        dimensions:
+          type: object
+          additionalProperties:
+            type: integer
+        visibleAt:
+          type: string
+          format: date-time
+          nullable: true
+        disputed:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    ReputationScoreDTO:
+      type: object
+      properties:
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        level:
+          type: string
+          enum: [SIN_HISTORIAL, BAJO, MEDIO, BUENO, EXCELENTE]
+        reviewCount:
+          type: integer
+        contractReviewCount:
+          type: integer
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewDTO'

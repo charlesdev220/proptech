@@ -15,6 +15,7 @@ Thumbs.db
 .nb-gradle/
 *.png
 e2e/
+.sdd/
 
 # Node / Angular (Frontend)
 node_modules/

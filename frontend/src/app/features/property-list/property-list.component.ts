@@ -1,13 +1,17 @@
-import { Component, OnInit, signal, computed, effect, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, signal, computed, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { InmueblesService } from '../../../api/api/inmuebles.service';
+import { BarriosService } from '../../../api/api/barrios.service';
 import { PropertyDTO } from '../../../api/model/propertyDTO';
+import { NeighborhoodDTO } from '../../../api/model/neighborhoodDTO';
+import { PropertySearchRequest } from '../../../api/model/propertySearchRequest';
 import { FavoritesService } from '../../core/favorites/favorites.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { IsochroneService, GeoJsonGeometry } from '../../core/isochrone/isochrone.service';
+import { IsochroneService } from '../../core/isochrone/isochrone.service';
+import { GeoJsonGeometry } from '../../../api/model/geoJsonGeometry';
 import * as L from 'leaflet';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 
@@ -25,10 +29,12 @@ import { environment } from '../../../environments/environment';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, LeafletModule],
   templateUrl: './property-list.component.html',
-  styleUrl: './property-list.component.css'
+  styleUrl: './property-list.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PropertyListComponent implements OnInit {
   private propertyService = inject(InmueblesService);
+  private barriosService = inject(BarriosService);
   private http = inject(HttpClient);
   private isochroneService = inject(IsochroneService);
   favoritesService = inject(FavoritesService);
@@ -52,7 +58,7 @@ export class PropertyListComponent implements OnInit {
   searchMode = signal<'radius' | 'draw' | 'neighborhoods' | 'isochrone'>('radius');
   currentPolygon = signal<GeoJsonGeometry | null>(null);
   selectedNeighborhoodIds = signal<Set<string>>(new Set());
-  neighborhoods = signal<any[]>([]);
+  neighborhoods = signal<NeighborhoodDTO[]>([]);
   isochroneOriginLat = signal<number | null>(null);
   isochroneOriginLng = signal<number | null>(null);
   isochroneMinutes = signal<number>(15);
@@ -199,13 +205,16 @@ export class PropertyListComponent implements OnInit {
     const polygon = this.currentPolygon();
     if (!polygon) return;
     this.loading.set(true);
-    this.http.post<any>('/api/v1/properties/search', {
-      polygon,
+
+    const searchRequest: PropertySearchRequest = {
+      polygon: polygon as any,
       minPrice: this.minPrice(),
       maxPrice: this.maxPrice(),
       page: this.page(),
       size: this.size()
-    }).subscribe({
+    };
+
+    this.propertyService.propertiesSearchPost(searchRequest).subscribe({
       next: (res) => {
         this.properties.set(res.content ?? []);
         this.totalElements.set(res.totalElements ?? 0);
@@ -217,13 +226,14 @@ export class PropertyListComponent implements OnInit {
   }
 
   loadNeighborhoods(): void {
-    this.http.get<any[]>('/api/v1/neighborhoods').subscribe({
+    this.barriosService.neighborhoodsGet().subscribe({
       next: (data) => this.neighborhoods.set(data ?? []),
       error: (err) => console.error('Error loading neighborhoods', err)
     });
   }
 
-  selectNeighborhood(neighborhood: any): void {
+  selectNeighborhood(neighborhood: NeighborhoodDTO): void {
+    if (!neighborhood.id) return;
     const current = new Set(this.selectedNeighborhoodIds());
 
     if (current.has(neighborhood.id)) {
@@ -240,22 +250,22 @@ export class PropertyListComponent implements OnInit {
     }
 
     // Build MultiPolygon GeoJSON from selected neighborhoods
-    const selected = this.neighborhoods().filter(n => current.has(n.id));
-    const allCoordinates: unknown[][] = [];
+    const selected = this.neighborhoods().filter(n => n.id && current.has(n.id));
+    const allCoordinates: any[][] = [];
 
     selected.forEach(n => {
       const polygon = n.polygon;
-      if (!polygon) return;
-      if (polygon.type === 'Polygon') {
+      if (!polygon || !polygon.coordinates) return;
+      if (polygon.type === GeoJsonGeometry.TypeEnum.Polygon) {
         allCoordinates.push(polygon.coordinates);
-      } else if (polygon.type === 'MultiPolygon') {
-        (polygon.coordinates as unknown[][]).forEach((coords: unknown[]) => allCoordinates.push(coords));
+      } else if (polygon.type === GeoJsonGeometry.TypeEnum.MultiPolygon) {
+        (polygon.coordinates as any[]).forEach((coords: any[]) => allCoordinates.push(coords));
       }
     });
 
     if (allCoordinates.length > 0) {
       this.currentPolygon.set({
-        type: 'MultiPolygon',
+        type: GeoJsonGeometry.TypeEnum.MultiPolygon,
         coordinates: allCoordinates
       });
     }

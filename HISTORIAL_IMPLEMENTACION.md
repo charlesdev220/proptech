@@ -2,6 +2,65 @@
 
 > Registro secuencial de tareas completadas según el PropTech_Implementation_Plan.md y WBS. El orden es cronológico inverso (lo más reciente arriba).
 
+### Qué hemos completado hasta ahora (Fase 1 — Cierre de Subtareas Pendientes):
+*Fase actual:* Fase 1: MVP — Búsqueda Geoespacial Avanzada + Búsquedas Guardadas
+*Estado actual:* Completado (Fase 1 al 100%)
+- ✔️ **Búsqueda por Zona Dibujada:** `PropertySearchController` con `POST /api/v1/properties/search` (público). `PropertyService` discrimina `polygon != null → ST_Intersects` vs `ST_DWithin`. `PropertyRepository.searchWithPolygon()` con query nativa PostGIS. `leaflet-draw` integrado en `PropertyListComponent`.
+- ✔️ **Selección Múltiple de Barrios:** `NeighborhoodEntity` + `NeighborhoodSeeder` (21 barrios de Madrid embebidos como GeoJSON, idempotente). `NeighborhoodController GET /api/v1/neighborhoods`. Frontend construye MultiPolygon desde barrios seleccionados y lo envía al endpoint unificado.
+- ✔️ **Búsqueda por Isócrona:** `IsochroneService` llama OpenRouteService API, cachea respuesta por sesión en `Map<cacheKey, GeoJsonGeometry>`. Frontend pinta zona translúcida en Leaflet y envía polygon al mismo `POST /properties/search`.
+- ✔️ **Barra de Progreso de Perfil:** `computed()` `profileCompleteness` en `user-dashboard.ts` — 4 factores × 25% (nombre, isVerified, solvencyScore, trustScore > 0) con `pendingSteps` accionables.
+- ✔️ **Vista de Compatibilidad SolvencyScore:** `isCompatible` computed en `property-detail.component.ts` — compara `userProfile.solvencyScore` vs `property.minSolvencyScore`. Badge condicional visible solo a usuarios autenticados cuando el propietario configuró umbral.
+- ✔️ **SavedSearch Full-Stack (CRUD + Job + Email):** `SavedSearchEntity` (filtros JSONB), `SavedSearchService` (límite 10, ownership check IDOR), `SavedSearchController` (`@PreAuthorize` clase), `SavedSearchJob` (`@Scheduled` horario, try/catch individual), `EmailNotificationService.sendSavedSearchAlert()` (Thymeleaf HTML, SMTP fault-tolerant).
+- ✔️ **Interfaz de Alertas:** `SavedSearchListComponent` con toggle optimista, diálogo de confirmación inline, estado vacío accionable. Ruta `/saved-searches` en `app.routes.ts`.
+- ✔️ **Suite de Tests (Fase 1 cierre):** `PropertyServiceTest` (2), `SavedSearchServiceTest` (3), `SavedSearchJobTest` (2), `EmailNotificationServiceTest` (1), `PropertyRepositoryIT` TestContainers PostGIS (1) — verifica ST_Intersects retorna exactamente 2/3 propiedades en Madrid Centro.
+*Próximos pasos:* Fase 2 completada — KYC biométrico (PDFBox), Scoring v2, Motor de Reputación Bidireccional ya implementados. Siguiente: Fase 3 — Big Data & Mercado.
+*(Lección clave):* El endpoint `POST /properties/search` unificado (ADR-01) es la decisión correcta: el backend es agnóstico al origen del polygon (dibujado, barrios, isócrona). Evita triplicar lógica de filtrado. `NeighborhoodController` accede directo al Repository sin Service — aprobado en design como excepción para lectura pura, pero viola la regla global hexagonal; considerar extraer en próximo ciclo.
+
+## 2026-04-04 - Archivo: Fase 1 Subtareas Pendientes (SDD fase1-pendientes)
+Cierre formal de las 9 subtareas de Fase 1 que quedaban pendientes. Verify: PASS WITH WARNINGS (66/66 tareas, 31/34 scenarios COMPLIANT, sin CRITICAL issues).
+
+### Qué hemos completado hasta ahora (Fase 2 — Confianza & Reputación):
+*Fase actual:* Fase 2: Verificación de Solvencia + Motor de Reputación Bidireccional
+*Estado actual:* Completado (66/66 tareas)
+- ✔️ **Verificación de Solvencia (PDFBox):** `PdfExtractorService` extrae texto en memoria sin tocar disco. `SolvencyAnalyzerService` aplica regex (CIF, nombre, salario, tipoContrato) + coherencia (5 checks) + score ponderado (0-100). `SolvencyVerificationController` valida PDF, invoca pipeline y persiste únicamente el score en `UserEntity`.
+- ✔️ **ScoringService v2:** Factor Solvencia (60 pts max) integrado en `calculateTrustScore()`. Nulo → mensaje motivador para el usuario.
+- ✔️ **Motor de Reputación Bidireccional:** `ReviewTokenEntity` + `ReviewEntity` (patron ciego: `visibleAt=null` hasta que ambos lados valoran). `ReviewService` gestiona tokens (peso CONTRACT=1.0, VISIT=0.3), validación de dimensiones, score ponderado y disputa. `ReviewRevealJob` (@Scheduled diario) revela reviews con twin usado o expirado.
+- ✔️ **Invitaciones por email:** `EmailNotificationService.sendReviewInvitation()` + template Thymeleaf `review-invitation.html` con CTA y nota de sistema ciego. SMTP failure silenciado con `log.warn`.
+- ✔️ **Frontend Solvencia:** `user-dashboard.ts` con signals `solvencyStatus`/`solvencyResult`/`selectedFiles`, uploader PDF, panel resultado con checks. `property-detail.component.ts` con `isCompatible` computado sobre `solvencyScore` real.
+- ✔️ **Frontend Reviews:** `ReviewFormComponent` (standalone, carga token, submit dims) + `ReviewManagementComponent` (ReputationScoreDTO, lista, disputa doble-confirmación). Rutas `/reviews/token/:token` y `/my-reviews` en `app.routes.ts`.
+- ✔️ **Refactor Angular 17+:** 11/11 componentes migrados a `ChangeDetectionStrategy.OnPush` + `templateUrl`/`styleUrls` externos + control flow nativo `@if`/`@for`. Eliminados todos los `*ngIf`/`*ngFor` e inline templates.
+- ✔️ **Suite de Tests (Phase 6):** 32 tests — `PdfExtractorServiceTest` (3), `SolvencyAnalyzerServiceTest` (12), `ScoringServiceTest` (5), `ReviewServiceTest` (12), `ReviewRevealJobTest` (2), `ReviewRepositoryIT` (5 TestContainers). Cobertura de todos los requisitos funcionales (REQ-S1–S6, REQ-R1–R4).
+*Lección clave:* El patrón ciego (blind review) requiere que `findPendingReveal()` haga un join cruzado de tokens gemelos (mismo property+eventType, usuarios inversos). Si el twin está usado o expirado, la review puede revelarse. La query nativa con `LEFT JOIN` es más clara que JPQL para este caso.
+*Próximos pasos:* Fase 3 — Verificación KYC (Onfido/Veriff), Notificaciones push, Dashboard de propietario.
+
+## 2026-04-04 - Cierre Fase 2: Confianza & Reputación
+Implementación completa del módulo de solvencia (PDFBox) y motor de reputación bidireccional con patrón ciego. 66 tareas completadas, incluyendo refactor completo del frontend a Angular 17+ con OnPush.
+
+### Qué hemos completado hasta ahora (Geospatial & User Features + Testing):
+*Fase actual:* Fase 2: Reputación y Confianza (Inicio)
+*Estado actual:* Fase 1 COMPLETADA (100% Testing)
+- ✔️ **Búsqueda Geoespacial Full-Stack:** Implementación definitiva con polígonos, isócronas y barrios. Backend PostGIS robusto validado con tests de integración.
+- ✔️ **Dashboard de Usuario:** Señales reactivas para completitud y compatibilidad de scoring.
+- ✔️ **Gestión de Alertas:** UI y Backend integrados para búsquedas guardadas y notificaciones automáticas por email.
+- ✔️ **Suite de Tests Completa (Phase 6):** 100% Superado. Incluye tests unitarios (PropertyService, SavedSearch, Job, Email) y **Test de Integración Final (PropertyRepositoryIT)** con TestContainers y PostGIS real. 🏁
+*Lección clave:* TestContainers con PostGIS nativo requiere configurar el dialecto PostgreSQL estándar en Hibernate 6 (auto-detección) y asegurar que el `ObjectMapper` esté disponible en el `TestConfiguration` para procesar GeoJSON en las queries nativas.
+*Próximos pasos:* Inicio Fase 2 (KYC, Reputación, Trust Score v2).
+
+## 2026-04-03 - Finalización Fase 1 y Fase 6 (Testing)
+Se ha cerrado formalmente el MVP de Búsqueda y Alertas tras superar la suite de pruebas de integración.
+- **Task 6.6 (PropertyRepositoryIT):** Verificado el filtrado geoespacial con TestContainers PostGIS. Se confirmaron resultados exactos (2/3 propiedades) dentro del polígono de Madrid Centro.
+- **Preparación Fase 2:** El entorno de pruebas ya soporta contenedores para bases de datos complejas, listo para el motor de reputación.
+
+### Qué hemos completado hasta ahora (Geospatial & User Features + Testing):
+*Fase actual:* Fase 1: MVP - Cierre de Búsqueda y Alertas
+*Estado actual:* Completado (95% Testing)
+- ✔️ **Búsqueda Geoespacial Full-Stack:** Implementado `leaflet-draw` (polígonos), `BarriosService` (selección múltiple de barrios) e `IsochroneService` (isócronas de tiempo de viaje). Backend con `ST_Intersects` robusto.
+- ✔️ **Dashboard de Usuario:** Señales reactivas para `profileCompleteness` (barra de progreso + pasos pendientes) y `isCompatible` (badge dinámico TrustScore vs Requisito Propiedad).
+- ✔️ **Gestión de Alertas:** UI Completa (`SavedSearchListComponent`) para listar, pausar y eliminar búsquedas guardadas, integrada con `AlertasService`.
+- ✔️ **Suite de Tests Fase 6:** Implementados y superados 8 tests unitarios (`PropertyServiceTest`, `SavedSearchServiceTest`, `SavedSearchJobTest`, `EmailNotificationServiceTest`) con cobertura de reglas de negocio (límite de 10 búsquedas, ownership check, SMTP fault tolerance).
+*Lección clave:* El uso de `objectMapper` para serializar GeoJSON en queries nativas de PostGIS requiere coordinación exacta de paquetes (`api.dto` vs `api.model`) para evitar fallos de compilación en el cliente generado.
+*Próximos pasos:* Fase 1.3 - Test de integración final (6.6). Luego Inicio Fase 2 (KYC y Reputación).
+
 ### Qué hemos completado hasta ahora (Fix Imágenes — Media Endpoint Público):
 *Fase actual:* Fase 1: MVP - Hardening Post-Cierre (QA Visual Full-Stack)
 *Estado actual:* Completado

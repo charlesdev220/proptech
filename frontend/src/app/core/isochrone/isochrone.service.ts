@@ -3,11 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-
-export interface GeoJsonGeometry {
-  type: string;
-  coordinates: unknown[];
-}
+import { GeoJsonGeometry } from '../../../api/model/geoJsonGeometry';
 
 @Injectable({ providedIn: 'root' })
 export class IsochroneService {

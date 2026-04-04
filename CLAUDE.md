@@ -18,6 +18,7 @@ Senior Architect, 15+ años, GDE & MVP. Mentor apasionado. Frustrás cuando algu
 
 ## 📏 Reglas Globales
 
+- **Para un nuevo desarrollo** siempre utiliza el `/orchestrator`, verifica el estado actual en `.ssd/changes` y continua con los desarrollos si no estan terminados.
 - **Nunca** añadir Co-Authored-By ni atribución IA a commits.
 - **Nunca** ejecutar build tras cambios salvo que se pida explícitamente.
 - **Nunca** usar `cat`, `grep`, `find`, `sed`, `ls` en Bash — usar las herramientas nativas (Read, Grep, Glob, Edit, Write).
@@ -39,7 +40,17 @@ Senior Architect, 15+ años, GDE & MVP. Mentor apasionado. Frustrás cuando algu
 
 ---
 
-## ⚙️ Reglas de Arquitectura
+## ⚙️ Reglas de Arquitectura comprobar seguir las especificaciones de los agentes `angular-architect.md` y `spring-architect.md`
+
+### Contrato — Contract-First
+- OpenAPI primero → código después. Ningún endpoint sin modificar `contracts/openapi.yaml` antes.
+- Modelos TypeScript siempre generados con OpenAPI Generator (`npm run generate:api`). Prohibido escribir interfaces HTTP manualmente.
+- Errores `400`, `401`, `404` con `ProblemDetail` (RFC 7807) en todos los endpoints.
+
+### Seguridad
+- PII nunca a APIs de IA externas.
+- Endpoints `/api/v1/**` cerrados por defecto. Permisos explícitos en `SecurityConfig`.
+- `@PreAuthorize` obligatorio en Create/Update/Delete.
 
 ### Backend — Spring Boot Hexagonal
 - **Capas:** `Controller` (solo HTTP+DTOs) → `Service` (lógica pura) → `Repository` (JPA). Nunca saltarse capas.
@@ -55,16 +66,6 @@ Senior Architect, 15+ años, GDE & MVP. Mentor apasionado. Frustrás cuando algu
 - **Control flow:** `@if`, `@for` exclusivamente. Prohibido `*ngIf`, `*ngFor`.
 - **Estado:** `signal()`, `computed()`, `effect()` para estado local. RxJS solo para `HttpClient` y flujos asíncronos complejos. `toSignal()` para convertir observables a signals.
 - **Seguridad:** Prohibido `innerHTML` sin `DomSanitizer`. Tokens JWT preferiblemente in-memory.
-
-### Contrato — Contract-First
-- OpenAPI primero → código después. Ningún endpoint sin modificar `contracts/openapi.yaml` antes.
-- Modelos TypeScript siempre generados con OpenAPI Generator (`npm run generate:api`). Prohibido escribir interfaces HTTP manualmente.
-- Errores `400`, `401`, `404` con `ProblemDetail` (RFC 7807) en todos los endpoints.
-
-### Seguridad
-- PII nunca a APIs de IA externas.
-- Endpoints `/api/v1/**` cerrados por defecto. Permisos explícitos en `SecurityConfig`.
-- `@PreAuthorize` obligatorio en Create/Update/Delete.
 
 ---
 
@@ -84,7 +85,14 @@ Los artefactos se persisten en `.sdd/changes/{change-name}/`.
 | `/sdd-verify` | Validar implementación contra specs |
 | `/sdd-archive` | Cerrar el cambio, actualizar historial |
 
-**Flujo:** `explore → propose → spec → design → tasks → apply → verify → archive`
+**Flujo:**
+
+```
+explore → proposal -> specs --> tasks -> apply -> verify -> archive
+             ^
+             |
+           design
+```
 
 **Meta-comandos** (los ejecuto inline, no son archivos de skill):
 - `/sdd-new <cambio>` → ejecutar explore + propose, pausar para aprobación
@@ -110,6 +118,11 @@ Los artefactos se persisten en `.sdd/changes/{change-name}/`.
 | `/wf-database-migration` | Cambios de esquema de base de datos |
 
 ---
+## 📖 Plan de Implementación
+
+`ProTech_Implementation_Plan.md` es un **journal append-only**, es una guia por fases para su implementacion.
+`ProTech_Plan_WSB.md` Este documento constituye el Plan de Trabajo completo y la Work Breakdown Structure (WBS)
+
 
 ## 📖 Historial de Implementación
 
@@ -132,9 +145,8 @@ Los artefactos se persisten en `.sdd/changes/{change-name}/`.
 
 ## 🗺️ Estado Actual
 
-**Rama:** `feature/fase1MapBox` | **Fase:** 1.3 Completada ✅ → Fase 2
-
-**Próximos pasos:** Fase 2 — KYC biométrico (Onfido/Veriff), Scoring v2, Motor de Reputación Bidireccional
+**Rama:** `feature/fase1MapBox` | **Fase:** 1.3 (Testing 100%) ✅ → Fase 2
+**Próximos pasos:** Fase 2 — Verificación Stateless (Apache PDFBox), Coherencia Documental, Motor de Reputación Bidireccional. Milestone 1 completo. 🏁
 
 ---
 
